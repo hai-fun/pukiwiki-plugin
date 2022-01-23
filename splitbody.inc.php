@@ -8,7 +8,8 @@
  * @version    $Id: splitbody.inc.php,v 1.2 2007-02-24 16:28:39Z sonots $
  * @package    plugin
  */
-
+ // v1.3 PHP8対応 2021-12-20 byはいふん
+ 
 class PluginSplitbody
 {
     // static
@@ -18,7 +19,7 @@ class PluginSplitbody
     var $border = 'border-right: 1px solid black;';
     var $splittag = '#split';
 
-    function PluginSplitbody()
+    function __construct()
     {
         static $default_options = array();
         if (empty($default_options)) {
@@ -32,6 +33,10 @@ class PluginSplitbody
         // init
         $this->options = $this->default_options;
     }
+    
+    function PluginSplitbody() {
+    	$this->__construct();
+    }
 
     function convert()
     {
@@ -44,8 +49,8 @@ class PluginSplitbody
             list($key, $val) = array_pad(explode('=', $arg, 2), 2, true);
             $this->options[$key] = $val;
         }
-        $this->options['style'] = htmlspecialchars($this->options['style']);
-        $this->options['width'] = htmlspecialchars($this->options['width']);
+        $this->options['style'] = htmlsc($this->options['style']);
+        $this->options['width'] = htmlsc($this->options['width']);
         
         // main
         list($bodies, $splitargs) = $this->splitbody($body);
@@ -54,7 +59,7 @@ class PluginSplitbody
             $splitoptions[$i] = array();
             foreach ($splitarg as $arg) {
                 list($key, $val) = array_pad(explode('=', $arg, 2), 2, true);
-                $splitoptions[$i][$key] = htmlspecialchars($val);
+                $splitoptions[$i][$key] = htmlsc($val);
             }
         }
         if ($this->options['tag'] == 'table') {
