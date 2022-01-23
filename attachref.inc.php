@@ -2,8 +2,9 @@
 /////////////////////////////////////////////////
 // PukiWiki - Yet another WikiWikiWeb clone.
 //
-// $Id: attachref.inc.php,v 0.14 2003/10/08 04:10:29 sha Exp $
+// $Id: attachref.inc.php,v 0.16 2021/12/11 10:07:29 sha Exp $
 // PHP7 Split関数終了によりexplode関数に変更 : 2019/12/11
+// PHP8 ミス等二ヶ所修正 : 2021/12/11 by はいふん
 //
 
 /*
@@ -177,7 +178,7 @@ function plugin_attachref_action()
 		{
 			return array('msg'=>'attach.inc.php not found or not correct version.');
 		}
-		$pass = array_key_exists('pass',$vars) ? md5($vars['pass']) : NULL;
+		$pass = array_key_exists('pass',$vars) ? $vars['pass'] : NULL;
 	    $retval = attach_upload($file,$vars['refer'],$pass);
 		if ($retval['result'] == TRUE)
 		{
@@ -200,8 +201,8 @@ function attachref_insert_ref($filename)
 	
 	$ret['msg'] = $_attachref_messages['msg_title'];
 	
-	$//args = split(",", $vars['attachref_opt']);
-        $args = explode(",", $vars['attachref_opt']);
+	//$args = split(",", $vars['attachref_opt']);
+    $args = explode(",", $vars['attachref_opt']);
 	if ( count($args) ){
 	    $args[0] = $filename;//array_shift,unshiftって要するにこれね
 	    $s_args = join(",", $args);
