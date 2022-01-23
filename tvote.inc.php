@@ -1,33 +1,34 @@
 <?php
 // $Id: tvote.inc.php,v 0.25 2005/02/12 18:00:00 r.tokiwa Exp $
 
-# ¥½¡¼¥È¡¦ÄÉ²ÃÂĞ±şPukiWikiÅêÉ¼¥×¥é¥°¥¤¥ó
+# ã‚½ãƒ¼ãƒˆãƒ»è¿½åŠ å¯¾å¿œPukiWikiæŠ•ç¥¨ãƒ—ãƒ©ã‚°ã‚¤ãƒ³
 # Note: based on vote.inc.php,v 1.14 2003/07/03 05:28:04 arino
 # Copyright: Ryota Tokiwa
 # License: GPL
 # Uage: See README.TXT
+ // v0.26 PHP8å¯¾å¿œ 2021-12-17 byã¯ã„ãµã‚“
 
-# »ÈÍÑÌÜÅª¤Ë¹ç¤ï¤»¤ÆÄê¿ô¤òÄ´À°¤·¤Æ¤¯¤À¤µ¤¤¡£
-# ÅêÉ¼Á°¤ËÆÀÉ¼¿ô¤òÉ½¼¨¤¹¤ë(TRUE)¡¿¤·¤Ê¤¤(FALSE) 
+# ä½¿ç”¨ç›®çš„ã«åˆã‚ã›ã¦å®šæ•°ã‚’èª¿æ•´ã—ã¦ãã ã•ã„ã€‚
+# æŠ•ç¥¨å‰ã«å¾—ç¥¨æ•°ã‚’è¡¨ç¤ºã™ã‚‹(TRUE)ï¼ã—ãªã„(FALSE) 
 define('_TVOTE_OPENCOUNT',TRUE);
-# ¥Ú¡¼¥¸¤Î¥¿¥¤¥à¥¹¥¿¥ó¥×¤ò¹¹¿·¤ò¤·¤Ê¤¤(TRUE)¡¿¤¹¤ë(FALSE)¡£
+# ãƒšãƒ¼ã‚¸ã®ã‚¿ã‚¤ãƒ ã‚¹ã‚¿ãƒ³ãƒ—ã‚’æ›´æ–°ã‚’ã—ãªã„(TRUE)ï¼ã™ã‚‹(FALSE)ã€‚
 define('_TVOTE_NOTIMESTAMP',TRUE);
-# ¥¯¥Ã¥­¡¼¤ËÊİÂ¸¤¹¤ëÅêÉ¼¿ô¤Î¾å¸Â¡£100°Ê²¼¤Ë¤·¤Æ¤¯¤À¤µ¤¤¡£
+# ã‚¯ãƒƒã‚­ãƒ¼ã«ä¿å­˜ã™ã‚‹æŠ•ç¥¨æ•°ã®ä¸Šé™ã€‚100ä»¥ä¸‹ã«ã—ã¦ãã ã•ã„ã€‚
 define('_TVOTE_VOTEDLIST_MAX','30');
-# ¥¯¥Ã¥­¡¼¤ÎÊİÂ¸Æü¿ô¡£
+# ã‚¯ãƒƒã‚­ãƒ¼ã®ä¿å­˜æ—¥æ•°ã€‚
 define('_TVOTE_VALIDDAYS',180);
-# ¥½¡¼¥È¤¹¤ë(TRUE)¡¿¤·¤Ê¤¤(FALSE)
+# ã‚½ãƒ¼ãƒˆã™ã‚‹(TRUE)ï¼ã—ãªã„(FALSE)
 define('_TVOTE_SORT',TRUE); 
-# ¤½¤ÎÂ¾¤Î¥Õ¥©¡¼¥à¤òÉ½¼¨¤¹¤ë(TRUE)¡¿¤·¤Ê¤¤(FALSE)
+# ãã®ä»–ã®ãƒ•ã‚©ãƒ¼ãƒ ã‚’è¡¨ç¤ºã™ã‚‹(TRUE)ï¼ã—ãªã„(FALSE)
 define('_TVOTE_ADD',TRUE);
-# ¥Ú¡¼¥¸¤òÅà·ë¤¹¤ë¤ÈÅêÉ¼¤ÏÄù¤áÀÚ¤ë(TRUE)¡¿·ÑÂ³¤¹¤ë(FALSE) 
+# ãƒšãƒ¼ã‚¸ã‚’å‡çµã™ã‚‹ã¨æŠ•ç¥¨ã¯ç· ã‚åˆ‡ã‚‹(TRUE)ï¼ç¶™ç¶šã™ã‚‹(FALSE) 
 define('_TVOTE_FREEZE_SYNC',TRUE);
-# MD5¥À¥¤¥¸¥§¥¹¥È¤Ë¤è¤ë¹¹¿·¾×ÆÍ¥Á¥§¥Ã¥¯¤ò¹Ô¤¦(TURE)¡¿¹Ô¤ï¤Ê¤¤(FALSE)¡£
+# MD5ãƒ€ã‚¤ã‚¸ã‚§ã‚¹ãƒˆã«ã‚ˆã‚‹æ›´æ–°è¡çªãƒã‚§ãƒƒã‚¯ã‚’è¡Œã†(TURE)ï¼è¡Œã‚ãªã„(FALSE)ã€‚
 define('_TVOTE_MD5_CHECK',FALSE);
 
 ########################################
-# ÄÌ¾ï¤Î»ÈÍÑ¤Ç¤Ï¡¢¤³¤ì°Ê¹ß¤òÊÔ½¸¤¹¤ëÉ¬Í×¤Ï¤¢¤ê¤Ş¤»¤ó¡£
-#¥¯¥Ã¥­¡¼ÍÑ¥Ç¡¼¥¿¥Ç¥ê¥ß¥¿
+# é€šå¸¸ã®ä½¿ç”¨ã§ã¯ã€ã“ã‚Œä»¥é™ã‚’ç·¨é›†ã™ã‚‹å¿…è¦ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚
+#ã‚¯ãƒƒã‚­ãƒ¼ç”¨ãƒ‡ãƒ¼ã‚¿ãƒ‡ãƒªãƒŸã‚¿
 define('C_DELIM','-'); 
 
 function plugin_tvote_action()
@@ -42,19 +43,19 @@ function plugin_tvote_action()
 	$tvote_no = -1;
 	$title = $body = $postdata = '';
 
-	// ¥Ú¡¼¥¸¥Ç¡¼¥¿¤Î½èÍı
+	// ãƒšãƒ¼ã‚¸ãƒ‡ãƒ¼ã‚¿ã®å‡¦ç†
 	foreach($postdata_old as $line) {
-		// tvoteÍ×ÁÇ¤¬¤¢¤ë¤«¸¡º÷¤·¡¢¤¢¤ì¤Ğ¼è¤ê½Ğ¤¹¡£
+		// tvoteè¦ç´ ãŒã‚ã‚‹ã‹æ¤œç´¢ã—ã€ã‚ã‚Œã°å–ã‚Šå‡ºã™ã€‚
 		if (!preg_match("/^#tvote\((.*)\)\s*$/",$line,$arg)) {
 			$postdata .= $line;
 			continue;
 		}
-		// POST¤µ¤ì¤¿tvote¤«¤É¤¦¤«¸¡ºº
+		// POSTã•ã‚ŒãŸtvoteã‹ã©ã†ã‹æ¤œæŸ»
 		if (++$tvote_no != $post['tvote_no']) {
 			$postdata .= $line;
 			continue;
 		}
-		//¥×¥é¥°¥¤¥ó°ú¿ô¼è¤ê½Ğ¤·
+		//ãƒ—ãƒ©ã‚°ã‚¤ãƒ³å¼•æ•°å–ã‚Šå‡ºã—
 		$args = csv_explode(',', $arg[1]);
 		$items = null;
 		$tvoteflag=false;
@@ -64,19 +65,19 @@ function plugin_tvote_action()
 			if (preg_match("/^([\da-f]{8})$/i",$key,$match))
 				$votedlist[$match[1]]=1;
 		}
-		//°ú¿ô½èÍı
+		//å¼•æ•°å‡¦ç†
 		foreach($args as $arg) {
 			$cnt = 0;
 			if (preg_match("/^(.+)\[([^\[]*)\]$/",$arg,$match)) {
 				$arg = $match[1];
 				$cnt = intval($match[2]);
 				if (!is_int($cnt) || $cnt<0) $cnt=0;
-			//°ú¿ô¤ÎÀèÆ¬Ê¸»ú¤¬+¤Ê¤é¤Ï¥ª¥×¥·¥ç¥ó¤È¤·¤Æ $opt[$arg]=$cnt;
+			//å¼•æ•°ã®å…ˆé ­æ–‡å­—ãŒ+ãªã‚‰ã¯ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã¨ã—ã¦ $opt[$arg]=$cnt;
 			}
 			$e_arg = encode($arg);
 			if (!empty($post["tvote_$e_arg"]) and $post["tvote_$e_arg"] == $_vote_plugin_votes) {
-				//ÅêÉ¼¤·¤Æ¤¤¤Ê¤¤¤«¥Á¥§¥Ã¥¯
-				//½éÅêÉ¼¤Ê¤é¥«¥¦¥ó¥È¡õ¥¯¥Ã¥­¡¼¥»¥Ã¥È
+				//æŠ•ç¥¨ã—ã¦ã„ãªã„ã‹ãƒã‚§ãƒƒã‚¯
+				//åˆæŠ•ç¥¨ãªã‚‰ã‚«ã‚¦ãƒ³ãƒˆï¼†ã‚¯ãƒƒã‚­ãƒ¼ã‚»ãƒƒãƒˆ
 				$hash=sprintf('%08x',crc32($arg));
 				$tvoteflag=true;
 				if (!$votedlist[$hash]) {
@@ -88,9 +89,9 @@ function plugin_tvote_action()
 				$items[$arg] = array($cnt,$arg);
 			}
 		}
-		// ¤½¤ÎÂ¾¤Î¾ì¹ç
+		// ãã®ä»–ã®å ´åˆ
 		if ((!empty($post['add_submit']) || !$tvoteflag) && !empty($post['tvote_add'])) {
-			$add = htmlspecialchars($post['tvote_add']);
+			$add = htmlsc($post['tvote_add']);
 # $trans_tbl = array ('"' => '&quot;');
 # $add = strtr($post['tvote_add'],$trans_tbl); 
 			$hash=sprintf('%08x',crc32($add));
@@ -108,23 +109,24 @@ function plugin_tvote_action()
 		$new_value=@join(C_DELIM,array_keys($votedlist));
 		$_COOKIE['tvote_'.$post['refer'].'_'.$post['tvote_no']]=$new_value;
 		if (_TVOTE_SORT) {
-			// ¥¹¥³¥¢¹ß½ç¥½¡¼¥È¡õ¥­¡¼¾º½ç¥½¡¼¥È
-			$cmpfunc = create_function('$a, $b', 'return ($a[0]==$b[0]?strcasecmp($a[1],$b[1]):$b[0]-$a[0]);');
+			// ã‚¹ã‚³ã‚¢é™é †ã‚½ãƒ¼ãƒˆï¼†ã‚­ãƒ¼æ˜‡é †ã‚½ãƒ¼ãƒˆ
+			//$cmpfunc = create_function('$a, $b', 'return ($a[0]==$b[0]?strcasecmp($a[1],$b[1]):$b[0]-$a[0]);');
+			$cmpfunc = function($a, $b) {return ($a[0]==$b[0]?strcasecmp($a[1],$b[1]):$b[0]-$a[0]);};
 			uasort($items,$cmpfunc);
 		}
 		foreach ($items as $key => $value) {
 			$votes[] = '"'.$key.'['.$value[0].']"';
 		}
-		// ¥ª¥×¥·¥ç¥ó¡Ê$opt[$arg]¡Ë ¤ò $votes¤Î¤¢¤È¤ËÄÉ²Ã;
+		// ã‚ªãƒ—ã‚·ãƒ§ãƒ³ï¼ˆ$opt[$arg]ï¼‰ ã‚’ $votesã®ã‚ã¨ã«è¿½åŠ ;
 		$tvote_str = '#tvote('.@join(',',$votes).")\n";
 		$postdata_input = $tvote_str;
 		$postdata .= $tvote_str;
 	}
 	if (_TVOTE_MD5_CHECK && (md5(@join('',get_source($post['refer']))) != $post['digest'])) {
 		$title = $_title_collided;
-		$s_refer = htmlspecialchars($post['refer']);
-		$s_digest = htmlspecialchars($post['digest']);
-		$s_postdata_input = htmlspecialchars($postdata_input);
+		$s_refer = htmlsc($post['refer']);
+		$s_digest = htmlsc($post['digest']);
+		$s_postdata_input = htmlsc($postdata_input);
 		$body = <<<EOD
 $_msg_collided
 <form action="$script?cmd=preview" method="post">
@@ -154,15 +156,15 @@ function plugin_tvote_convert()
 	$style = 'padding-left:0.5em;padding-right:0.5em';
 //	 $vars['tvote_info_'.$tvote_no] .= "debug";
 
-	// PukiWiki¤Î¥Ğ¥°¡©ÂĞºö action»ş¤Ë¥Ú¡¼¥¸Ì¾¤Ç¤Ê¤·¤Ç¸Æ¤Ğ¤ì¤ë¡£
+	// PukiWikiã®ãƒã‚°ï¼Ÿå¯¾ç­– actionæ™‚ã«ãƒšãƒ¼ã‚¸åã§ãªã—ã§å‘¼ã°ã‚Œã‚‹ã€‚
 	if (empty($vars['page']))
 		return '';
 	if (!array_key_exists($vars['page'],$numbers))
 		$numbers[$vars['page']] = 0;
 	$tvote_no = $numbers[$vars['page']]++;
 	$args = func_get_args();
-	$s_page = htmlspecialchars($vars['page']);
-	$s_digest = htmlspecialchars($digest);
+	$s_page = htmlsc($vars['page']);
+	$s_digest = htmlsc($digest);
 	$_votedlist=explode(C_DELIM, $_COOKIE['tvote_'.$s_page.'_'.$tvote_no]);
 	foreach( $_votedlist as $key ) {
 		if (preg_match("/^([\da-f]{8})$/i",$key,$match))
@@ -170,8 +172,8 @@ function plugin_tvote_convert()
 	}
 	$view_count=_TVOTE_OPENCOUNT || ($votedlist) || (is_freeze($vars['page']) && _TVOTE_FREEZE_SYNC);
 	if($view_count) {
-		$votecount_head='ÆÀÉ¼¿ô';
-		$votepercent_head='ÆÀÉ¼Î¨';
+		$votecount_head='å¾—ç¥¨æ•°';
+		$votepercent_head='å¾—ç¥¨ç‡';
 	}
 	$body = <<<EOD
 <a id="tvote$tvote_no"></a>
@@ -201,7 +203,7 @@ EOD;
 			$cnt = intval($match[2]);
 			if (!is_int($cnt) || $cnt<0) $cnt=0;
 			$polltotal+=$cnt;
-			//°ú¿ô¤ÎÀèÆ¬Ê¸»ú¤¬+¤Ê¤é¤Ï¥ª¥×¥·¥ç¥ó¤È¤·¤Æ $opt[$arg]=$cnt;
+			//å¼•æ•°ã®å…ˆé ­æ–‡å­—ãŒ+ãªã‚‰ã¯ã‚ªãƒ—ã‚·ãƒ§ãƒ³ã¨ã—ã¦ $opt[$arg]=$cnt;
 		}
 		$itemlist[$arg]=$cnt;
 	}
@@ -212,7 +214,10 @@ EOD;
 		$trans_tbl = array_flip(get_html_translation_table(HTML_ENTITIES));
 		$item = strtr($key, $trans_tbl);
 		$html = make_link($item);
-		$cntp=sprintf("%.1f",$cnt*100/$polltotal).'%';
+		if ($polltotal != 0) 
+			$cntp=sprintf("%.1f",$cnt*100/$polltotal).'%';
+		else
+			$cntp = 0 . "%";
 		if(!$view_count) {
 			unset($cnt);
 			unset($cntp);
@@ -227,27 +232,27 @@ EOD;
 EOD;
 		$hash=sprintf('%08x',crc32($key));
 		$itemshash[$hash] = 1;
-		// Åà·ëÈ½Äê
+		// å‡çµåˆ¤å®š
 		if(!(is_freeze($vars['page']) && _TVOTE_FREEZE_SYNC)) {
 			if (!$votedlist[$hash])
-				//ÅêÉ¼¤·¤Æ¤Ê¤¤¤Ê¤é¥Ü¥¿¥óÉ½¼¨
+				//æŠ•ç¥¨ã—ã¦ãªã„ãªã‚‰ãƒœã‚¿ãƒ³è¡¨ç¤º
 				$body .= "<input type=\"submit\" name=\"tvote_$e_arg\" value=\"$_vote_plugin_votes\" class=\"submit\" />";
 			else
-				//ÅêÉ¼ºÑ¤Ê¤éÉ½¼¨¤·¤Ê¤¤
-				$body .= 'ÅêÉ¼ºÑ';
-		} //else	$body .= 'ÄùÀÚ';
+				//æŠ•ç¥¨æ¸ˆãªã‚‰è¡¨ç¤ºã—ãªã„
+				$body .= 'æŠ•ç¥¨æ¸ˆ';
+		} //else	$body .= 'ç· åˆ‡';
 		$body .= '</td></tr>';
 	}
-# Åà·ëÈ½Äê
+# å‡çµåˆ¤å®š
 	if(!(is_freeze($vars['page']) && _TVOTE_FREEZE_SYNC) && _TVOTE_ADD) {
 		$cls = ($tdcnt++ % 2)  ? 'vote_td1' : 'vote_td2';
 		$body .= <<<EOD
   <tr>
-   <td align="left" class="$cls" colspan="3" style="$style">¤½¤ÎÂ¾
+   <td align="left" class="$cls" colspan="3" style="$style">ãã®ä»–
 <input type="text" size="40" name="tvote_add" value="" />
 </td>
    <td align="right" class="$cls" style="$style">
-<input type="submit" name="add_submit" value="ÅêÉ¼" class="submit"  />
+<input type="submit" name="add_submit" value="æŠ•ç¥¨" class="submit"  />
    </td>
   </tr>
 EOD;
@@ -256,7 +261,7 @@ EOD;
 		$cls = ($tdcnt++ % 2)  ? 'vote_td1' : 'vote_td2';
 		$body .= <<<EOD
   <tr>
-   <td align="left" class="$cls" style="$style">ÅêÉ¼Áí¿ô</td>
+   <td align="left" class="$cls" style="$style">æŠ•ç¥¨ç·æ•°</td>
    <td align="right" class="$cls" style="$style">$polltotal</td>
    <td align="right" class="$cls" style="$style"></td>
    <td align="right" class="$cls" style="$style"></td>
@@ -264,13 +269,18 @@ EOD;
 EOD;
 	}
 	$body .= '</table></form>';
-# ¥¯¥Ã¥­¡¼Áİ½ü
-	foreach( array_keys($votedlist) as $key )
-		if (!$itemshash[$key])
-			unset($votedlist[$key]);
-# ¥¯¥Ã¥­¡¼¥»¥Ã¥È
-	$new_value=@join(C_DELIM,array_keys($votedlist));
-	setcookie('tvote_'.$s_page.'_'.$tvote_no,$new_value,time()+3600*24*_TVOTE_VALIDDAYS);
+# ã‚¯ãƒƒã‚­ãƒ¼æƒé™¤
+	if (!empty($votedlist)) {
+		foreach( array_keys($votedlist) as $key )
+			if (!$itemshash[$key])
+				unset($votedlist[$key]);
+	}
+# ã‚¯ãƒƒã‚­ãƒ¼ã‚»ãƒƒãƒˆ
+	if (!empty($votedlist)) {
+		$new_value=@join(C_DELIM,array_keys($votedlist));
+		setcookie('tvote_'.$s_page.'_'.$tvote_no,$new_value,time()+3600*24*_TVOTE_VALIDDAYS);
+	}
 	return $vars['tvote_info_'.$tvote_no].$body;
+	
 }
 ?>
