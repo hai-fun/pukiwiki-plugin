@@ -16,9 +16,12 @@
  *  @license    http://www.gnu.org/licenses/gpl.html    GPL2
  *  @link       http://lsx.sourceforge.jp/?Plugin%2Fvotex
  */
+ 
+ // v1.51 PHP8.0対応 2021-12-15 byはいふん
+ 
 class PluginVotex
 {
-    function PluginVotex()
+    function __construct()
     {
         // static
         static $CONF = array();
@@ -46,6 +49,10 @@ class PluginVotex
         if (function_exists('textdomain')) {
             textdomain('vote'); // use i18n msgs of vote.inc.php
         }
+    }
+    
+    function PluginVotex() {
+    	$this->__construct();
     }
 
     // static
@@ -388,9 +395,9 @@ class PluginVotex
     function show_preview_form($msg = '', $body = '')
     {
         global $vars, $rows, $cols;
-        $s_refer  = htmlspecialchars($vars['refer']);
-        $s_digest = htmlspecialchars($vars['digest']);
-        $s_body   = htmlspecialchars($body);
+        $s_refer  = htmlsc($vars['refer']);
+        $s_digest = htmlsc($vars['digest']);
+        $s_body   = htmlsc($body);
         $form  = '';
         $form .= $msg . "\n";
         $form .= '<form action="' . get_script_uri() . '?cmd=preview" method="post">' . "\n";
@@ -467,8 +474,8 @@ class PluginVotex
             $r_choice_id = rawurlencode($choice_id);
             $r_choice    = rawurlencode($choice);
             $r_count     = rawurlencode($count);
-            $s_choice    = htmlspecialchars($choice);
-            $s_count     = htmlspecialchars($count);
+            $s_choice    = htmlsc($choice);
+            $s_count     = htmlsc($count);
             if ($this->options['readonly']) {
                 $form .= $s_choice . '<span>&nbsp;' . $s_count . '&nbsp;</span>';
             } else {
@@ -517,7 +524,7 @@ class PluginVotex
     function &restore_args_inline(&$votes, &$options, &$default_options)
     {
         // currently same
-        return $this->restore_args_convert($votes, $options, &$default_options);
+        return $this->restore_args_convert($votes, $options, $default_options);
     }
 
     /**
@@ -578,7 +585,10 @@ class PluginVotex
         foreach ($args as $arg) {
             $arg = trim($arg);
             list($key, $val) = array_pad(explode('=', $arg, 2), 2, TRUE);
-            if (array_key_exists($key, $options)) {
+            if (empty($options)) {
+            	
+            }
+            else if (array_key_exists($key, $options)) {
                 $options[$key] = $val;
                 continue;
             }
@@ -648,8 +658,8 @@ class PluginVotex
         global $vars, $defaultpage;
         global $digest;
         $page     = isset($vars['page']) ? $vars['page'] : $defaultpage;
-        $s_page   = htmlspecialchars($page);
-        $s_digest = htmlspecialchars($digest);
+        $s_page   = htmlsc($page);
+        $s_digest = htmlsc($digest);
         $script = ($this->options['readonly']) ? '' : get_script_uri();
         $submit = ($this->options['readonly']) ? 'hidden' : 'submit';
         $choicestyle = 'padding-left:1em;padding-right:1em;';
@@ -697,7 +707,7 @@ class PluginVotex
             list($choice, $count) = $vote;
             $class       = ($choice_id % 2) ? 'vote_td1' : 'vote_td2';
             $s_choice    = make_link($choice);
-            $s_count     = htmlspecialchars($count);
+            $s_count     = htmlsc($count);
             $choice_key  = $this->encode_choice($choice_id);
             if ($this->options['barchart']) {
                 $percent = (int)(($count / $max) * 100); // / $sum
