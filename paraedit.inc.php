@@ -1,9 +1,9 @@
 <?php
-define(_PARAEDIT_VERSION, 0.8);
+define('_PARAEDIT_VERSION', 1.0);
 
 /*
 
-* パラグラフ指向化プラグイン - paraedit 0.8
+* パラグラフ指向化プラグイン - paraedit 1.0
 
 PukiWikiでパラグラフ単位の編集をできるようにするプラグインです。
 
@@ -28,6 +28,8 @@ PukiWikiでパラグラフ単位の編集をできるようにするプラグイ
 
 
  taru : paraedit0.8 変更点について
+        v0.9 split() を explode() に書き換え、fatal errorを回避した物
+ はいふん：v1.0 PHP8対応 2021-12-20
 
  1.     function plugin_paraedit_init()で参照しているinit.php
         がPukiWiki 1.4.7ではlibフォルダに格納されているから
@@ -36,7 +38,7 @@ PukiWikiでパラグラフ単位の編集をできるようにするプラグイ
  2.     UTF-8環境でEUC-JPにて書かれたプログラムをそのまま使う
         人が多いようなのでUTF-8Nで保存しなおします。
 
- 対象環境: PukiWiki-1.4.7 UTF-8N
+ 対象環境: PukiWiki-1.5.x UTF-8N
            PHP5.2.0以降
 
  http://taru.s223.xrea.com/
@@ -53,16 +55,19 @@ GPL2 (GNU General Public License version 2)
 
 // 編集リンクの文字列・スタイルを指定
 //   %s に URL が入る
-//define(_EDIT_LINK, '<div style="text-align: right; font-size: x-small; padding: 0px; "><a href="%s">[edit]</a></div>');
 
-define(_EDIT_LINK, '<span style="float:right; font-size: small; font-weight: lighter; padding: 0px 0px 0px 1em; ">[<a href="%s">edit</a>]</span>');
+// * 文字バージョン ([edit])
+define('_EDIT_LINK', '<span style="float:right; font-size: small; font-weight: lighter; padding: 0px 0px 0px 1em; ">[<a href="%s">edit</a>]</span>');
+
+// * 画像バージョン
+//define('_EDIT_LINK', '<span style="float:right; font-size: small; font-weight: lighter; padding: 0px 0px 0px 1em; "><a href="%s"><img src="' . IMAGE_DIR . 'paraedit.png" style="width:9px;height:9px;" /></a></span>');
 
 
 // 編集リンクの挿入箇所を指定
 //   <h2>header</h2> の時、$1:<h2>, $2:header, $3:</h2> となるので $link を好きな場所に移動
 // (例)
 //　   define(_PARAEDIT_LINK_POS, '$1$2$link$3'); // </h2>の前
-       define(_PARAEDIT_LINK_POS, '$1$2$link$3'); // </h2>の前
+       define('_PARAEDIT_LINK_POS', '$1$2$link$3'); // </h2>の前
 //   define(_PARAEDIT_LINK_POS, '$link$1$2$3'); // <h2>の前
 //   define(_PARAEDIT_LINK_POS, '$1$2$3$link'); // </h2>の後ろ
 
@@ -71,14 +76,14 @@ define(_EDIT_LINK, '<span style="float:right; font-size: small; font-weight: lig
 
 // 改行の代替文字列
 //   <input type=hidden value=XXXXX> で改行(CR,LFなど)の変わりに使用する文字列
-define(_PARAEDIT_SEPARATE_STR, '_PaRaeDiT_');
+define('_PARAEDIT_SEPARATE_STR', '_PaRaeDiT_');
 
 
 function plugin_paraedit_init()
 {
 	// init
 	// プログラムファイル読み込み
-	require(LIB_DIR . 'init.php');
+	require_once(LIB_DIR . 'init.php'); // Kさんより
 }
 
 
@@ -92,15 +97,16 @@ function plugin_paraedit_convert()
 function plugin_paraedit_action()
 {
 	// GET POST 時に呼び出される
-	global $script, $get, $post, $vars;
+	global $get, $post, $vars;
 	global $_title_edit; // $LANG.lng で定義済
 	
+	$script = get_script_uri();
 	// 編集不可能なページを編集しようとしたとき
 	if (S_VERSION < 1.4) {
 		if (is_freeze($vars['page']) || !is_editable($vars['page']) || $vars["page"] == "")
 		{
 			$wikiname = rawurlencode($vars['page']);
-			header("Location: $script?cmd=edit&page=$wikiname");
+			header("Location: " . $script . "?cmd=edit&page=$wikiname");
 			die();
 		}
 	} else {
@@ -113,7 +119,7 @@ function plugin_paraedit_action()
 	if($postdata == "") {
 		$postdata = auto_template($get['page']); //# should be test
 	}
-	$postdata = htmlspecialchars($postdata);
+	$postdata = htmlsc($postdata);
 
 //	#$page = str_replace('$1',make_search($get['page']), $_title_edit);
 	$page = $_title_edit;
@@ -182,8 +188,9 @@ function plugin_paraedit_action()
 function _plugin_paraedit_mkeditlink($body)
 {
 	// [edit]リンクの作成
-	global $script, $get, $post, $vars;
+	global $get, $post, $vars;
 	$lines = explode("\n", $body);
+	$script = get_script_uri();
 	
 	$para_num = 1;
 	$lines2 = array();
@@ -206,7 +213,6 @@ function _plugin_paraedit_mkeditlink($body)
 	$body = @join("\n", $lines2);
 	return $body;
 }
-
 
 function _plugin_paraedit_parse_postmsg($msg_before, $msg_now, $msg_after)
 {
