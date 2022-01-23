@@ -5,8 +5,10 @@
 // $Id: vote2.inc.php,v 0.12 2003/10/05 17:55:04 sha Exp $
 // based on vote.inc.php v1.14
 //
-// v0.2¤Ï¥¤¥ó¥é¥¤¥ó¤Î¥ê¥ó¥¯¤Ëtitle¤òÉÕ¤±¤¿¡£
+// v0.2ã¯ã‚¤ãƒ³ãƒ©ã‚¤ãƒ³ã®ãƒªãƒ³ã‚¯ã«titleã‚’ä»˜ã‘ãŸã€‚
 
+ // v0.13 PHP8å¯¾å¿œ 2021-12-17 byã¯ã„ãµã‚“
+ 
 function plugin_vote2_init()
 {
 	$messages = array(
@@ -16,11 +18,11 @@ function plugin_vote2_init()
 			'arg_nolabel'     => 'nolabel',
 			'arg_notitle'     => 'notitle',
 			'title_error' => 'Error in vote2',
-			'no_page_error' => '$1 ¤Î¥Ú¡¼¥¸¤ÏÂ¸ºß¤·¤Ş¤»¤ó',
-			'update_failed' => 'ÅêÉ¼¼ºÇÔ¡§$1¤Ë¤ª¤¤¤ÆÅêÉ¼Àè¤¬Ìµ¤¤¤«¹àÌÜ¤¬¹çÃ×¤·¤Ş¤»¤ó¤Ç¤·¤¿¡£',
-			'body_error' => '¤¢¤ë¤Ù¤­°ú¿ô¤¬ÅÏ¤µ¤ì¤Æ¤¤¤Ê¤¤¤«¡¢°ú¿ô¤Ë¥¨¥é¡¼¤¬¤¢¤ê¤Ş¤¹¡£',
-			'msg_collided'  => '<h3>¤¢¤Ê¤¿¤¬ÅêÉ¼¤·¤Æ¤¤¤ë´Ö¤Ë¡¢Â¾¤Î¿Í¤¬Æ±¤¸¥Ú¡¼¥¸¤ÎÆâÍÆ¤ò¹¹¿·¤·¤Æ¤·¤Ş¤Ã¤¿¤è¤¦¤Ç¤¹¡£<br />½¾¤Ã¤Æ¡¢ÅêÉ¼¤¹¤ë°ÌÃÖ¤ò´Ö°ã¤¨¤ë²ÄÇ½À­¤¬¤¢¤ê¤Ş¤¹¡£<br /><br />
-¤¢¤Ê¤¿¤Î¹¹¿·¤òÌµ¸ú¤Ë¤·¤Ş¤·¤¿¡£Á°¤Î¥Ú¡¼¥¸¤ò¥ê¥í¡¼¥É¤·¤Æ¤ä¤êÄ¾¤·¤Æ¤¯¤À¤µ¤¤¡£</h3>'
+			'no_page_error' => '$1 ã®ãƒšãƒ¼ã‚¸ã¯å­˜åœ¨ã—ã¾ã›ã‚“',
+			'update_failed' => 'æŠ•ç¥¨å¤±æ•—ï¼š$1ã«ãŠã„ã¦æŠ•ç¥¨å…ˆãŒç„¡ã„ã‹é …ç›®ãŒåˆè‡´ã—ã¾ã›ã‚“ã§ã—ãŸã€‚',
+			'body_error' => 'ã‚ã‚‹ã¹ãå¼•æ•°ãŒæ¸¡ã•ã‚Œã¦ã„ãªã„ã‹ã€å¼•æ•°ã«ã‚¨ãƒ©ãƒ¼ãŒã‚ã‚Šã¾ã™ã€‚',
+			'msg_collided'  => '<h3>ã‚ãªãŸãŒæŠ•ç¥¨ã—ã¦ã„ã‚‹é–“ã«ã€ä»–ã®äººãŒåŒã˜ãƒšãƒ¼ã‚¸ã®å†…å®¹ã‚’æ›´æ–°ã—ã¦ã—ã¾ã£ãŸã‚ˆã†ã§ã™ã€‚<br />å¾“ã£ã¦ã€æŠ•ç¥¨ã™ã‚‹ä½ç½®ã‚’é–“é•ãˆã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚<br /><br />
+ã‚ãªãŸã®æ›´æ–°ã‚’ç„¡åŠ¹ã«ã—ã¾ã—ãŸã€‚å‰ã®ãƒšãƒ¼ã‚¸ã‚’ãƒªãƒ­ãƒ¼ãƒ‰ã—ã¦ã‚„ã‚Šç›´ã—ã¦ãã ã•ã„ã€‚</h3>'
 
 		),
 	);
@@ -71,17 +73,18 @@ function plugin_vote2_action()
 }
 function plugin_vote2_inline()
 {
-	global $script,$vars,$digest, $_vote2_messages, $_vote_plugin_votes;
+	global $vars, $digest, $_vote2_messages, $_vote_plugin_votes;
 	global $_vote_plugin_choice, $_vote_plugin_votes;
 	static $numbers = array();
 	static $notitle = FALSE;
+	$script = get_script_uri();
 	$str_notimestamp = $_vote2_messages['arg_notimestamp'];
 	$str_nonumber    = $_vote2_messages['arg_nonumber'];
 	$str_nolabel     = $_vote2_messages['arg_nolabel'];
 	$str_notitle     = $_vote2_messages['arg_notitle'];
 
 	$args = func_get_args();
-	array_pop($args); // {}Æâ¤ÎÍ×ÁÇ¤Îºï½ü
+	array_pop($args); // {}å†…ã®è¦ç´ ã®å‰Šé™¤
 	$page = $vars['page'];
 	if (!array_key_exists($page,$numbers))	$numbers[$page] = 0;
 	$vote_inno = $numbers[$page]++;
@@ -180,15 +183,16 @@ function plugin_vote2_address($match, $vote_no, $page, $ndigest)
 			 break;
 		default:  $vote_no  = 'error'; break;
 	}
-	$f_vote_no = htmlspecialchars($npage . '=' . $vote_no);
+	$f_vote_no = htmlsc($npage . '=' . $vote_no);
 	return array($npage, $vote_no, $f_vote_no, $ndigest);
 }
 function plugin_vote2_convert()
 {
-	global $script,$vars,$digest, $_vote2_messages;
+	global $vars, $digest, $_vote2_messages;
 	global $_vote_plugin_choice, $_vote_plugin_votes, $digests;
 	static $numbers = array();
 	static $notitle = FALSE;
+	$script = get_script_uri();
 	$str_notimestamp = $_vote2_messages['arg_notimestamp'];
 	$str_nonumber    = $_vote2_messages['arg_nonumber'];
 	$str_nolabel     = $_vote2_messages['arg_nolabel'];
@@ -284,8 +288,8 @@ EOD;
 		}
 	}
 
-	$s_page    = htmlspecialchars($page);
-	$s_digest  = htmlspecialchars($ndigest);
+	$s_page    = htmlsc($page);
+	$s_digest  = htmlsc($ndigest);
 	$title = $notitle ? '' : "title=\"$f_vote_no\"";
 	$body = <<<EOD
 <form action="$script" method="post">
@@ -313,9 +317,10 @@ EOD;
 }
 function plugin_vote2_action_inline($vote_no)
 {
-	global $get,$vars,$script,$cols,$rows, $_vote2_messages;
+	global $get, $vars, $cols, $rows, $_vote2_messages;
 	global $_title_collided,$_msg_collided,$_title_updated;
 	global $_vote_plugin_choice, $_vote_plugin_votes;
+	$script = get_script_uri();
 	$str_notimestamp = $_vote2_messages['arg_notimestamp'];
 	$str_nonumber    = $_vote2_messages['arg_nonumber'];
 	$str_nolabel     = $_vote2_messages['arg_nolabel'];
@@ -414,9 +419,10 @@ function plugin_vote2_action_inline($vote_no)
 }
 function plugin_vote2_action_block($vote_no)
 {
-	global $post,$vars,$script,$cols,$rows, $_vote2_messages;
+	global $post, $vars, $cols, $rows, $_vote2_messages;
 	global $_title_collided,$_msg_collided,$_title_updated;
 	global $_vote_plugin_choice, $_vote_plugin_votes;
+	$script = get_script_uri();
 	$str_notimestamp = $_vote2_messages['arg_notimestamp'];
 	$str_nonumber    = $_vote2_messages['arg_nonumber'];
 	$str_nolabel     = $_vote2_messages['arg_nolabel'];
