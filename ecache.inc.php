@@ -9,9 +9,12 @@
  * @package    plugin
  */
 
+// v1.6 PHP8対応 byはいふん
+// $Id: ecache.inc.php,v 1.6 2022-02-07 21:43:23 haifun $
+
 class PluginEcache
 {
-    function PluginEcache()
+    function __construct()
     {
         static $default_options = array(
             'page'  => NULL,
@@ -21,6 +24,11 @@ class PluginEcache
 
         // init
         $this->options = $default_options;
+    }
+
+    function PluginEcache()
+    {
+        $this->__construct();
     }
     
     // static
@@ -80,9 +88,12 @@ class PluginEcache
      */
     function reflect_cache(&$data)
     {
-        $GLOBALS['head_tags']    += isset($data['head_tags']) ? $data['head_tags'] : array(); // $head_tag
-        $GLOBALS['foot_tags']    += isset($data['foot_tags']) ? $data['foot_tags'] : array(); // Plus! $foot_tag
-        $GLOBALS['foot_explain'] += isset($data['foot_explain']) ? $data['foot_explain'] : array(); // $notes
+    	if (isset($GLOBALS['head_tags']))
+            $GLOBALS['head_tags']    = array_merge($GLOBALS['head_tags'], (isset($data['head_tags']) ? $data['head_tags'] : array())); // $head_tag
+    	if (isset($GLOBALS['foot_tags']))
+            $GLOBALS['foot_tags']    = array_merge($GLOBALS['foot_tags'], (isset($data['foot_tags']) ? $data['foot_tags'] : array())); // Plus! $foot_tag
+    	if (isset($GLOBALS['foot_explain']))
+            $GLOBALS['foot_explain'] = array_merge($GLOBALS['foot_explain'], (isset($data['foot_explain']) ? $data['foot_explain'] : array())); // $notes
         if (isset($data['newtitle'])) $GLOBALS['newtitle'] = $data['newtitle']; // Plus!
     }
 
@@ -97,9 +108,9 @@ class PluginEcache
     {
         global $vars, $post, $get;
         $temp = array();
-        $temp['head_tags']    = $GLOBALS['head_tags'];
-        $temp['foot_tags']    = $GLOBALS['foot_tags'];
-        $temp['foot_explain'] = $GLOBALS['foot_explain'];
+        $temp['head_tags']    = (isset($GLOBALS['head_tags']) ? $GLOBALS['head_tags'] : array());
+        $temp['foot_tags']    = (isset($GLOBALS['foot_tags']) ? $GLOBALS['foot_tags'] : array());
+        $temp['foot_explain']    = (isset($GLOBALS['foot_explain']) ? $GLOBALS['foot_explain'] : array());
 
         $temp['page'] = $vars['page'];
         $vars['page'] = $post['page'] = $get['page'] = $page;
@@ -116,9 +127,9 @@ class PluginEcache
         
         $data = array();
         $data['html']         = $html;
-        $data['head_tags']    = array_diff($GLOBALS['head_tags'], $temp['head_tags']); // think of only addition
-        $data['foot_tags']    = array_diff($GLOBALS['foot_tags'], $temp['foot_tags']); 
-        $data['foot_explain'] = array_diff($GLOBALS['foot_explain'], $temp['foot_explain']);
+        $data['head_tags']    = array_diff((isset($GLOBALS['head_tags']) ? $GLOBALS['head_tags'] : array()), $temp['head_tags']); // think of only addition
+        $data['foot_tags']    = array_diff((isset($GLOBALS['foot_tags']) ? $GLOBALS['foot_tags'] : array()), $temp['foot_tags']); 
+        $data['foot_explain'] = array_diff((isset($GLOBALS['foot_explain']) ? $GLOBALS['foot_explain'] : array()), $temp['foot_explain']);
         $data['newtitle']     = isset($GLOBALS['newtitle']) ? $GLOBALS['newtitle'] : NULL;
         return $data;
     }
