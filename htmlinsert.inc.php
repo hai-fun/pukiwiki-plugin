@@ -10,10 +10,13 @@
  * @version    $Id: htmlinsert.inc.php,v 1.13 2008-07-18 11:09:19Z sonots $
  * @package    plugin
  */
+ 
+// v1.14 PHP8‘Î‰ž by‚Í‚¢‚Ó‚ñ
+// $Id: htmlinsert.inc.php,v 1.14 2022-02-07 18:36:34 haifun $
 
 class PluginHtmlinsert
 {
-    function PluginHtmlinsert()
+    function __construct()
     {
         static $conf = array(); if (empty($conf)) $conf = array(
             'INSERT_DIR'         => DATA_HOME . 'htmlinsert',
@@ -31,6 +34,11 @@ class PluginHtmlinsert
         $this->conf = &$conf;
         $this->syntax  = &$syntax;
         $this->defoptions = &$defoptions;
+    }
+
+    function PluginHtmlinsert()
+    {
+    	$this->__construct();
     }
 
     // static
@@ -212,7 +220,7 @@ class PluginHtmlinsert
             array_shift($lines);
         }
         $source = implode('', $lines);
-        return $source;
+        return remove_author_header($source);
     }
 
     /**
