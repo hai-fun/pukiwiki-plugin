@@ -11,7 +11,7 @@
  * @package    plugin
  */
  
-// v1.14 PHP8‘Î‰ž by‚Í‚¢‚Ó‚ñ
+// v1.14 PHP8å¯¾å¿œ byã¯ã„ãµã‚“
 // $Id: htmlinsert.inc.php,v 1.14 2022-02-07 18:36:34 haifun $
 
 class PluginHtmlinsert
@@ -38,7 +38,7 @@ class PluginHtmlinsert
 
     function PluginHtmlinsert()
     {
-    	$this->__construct();
+        $this->__construct();
     }
 
     // static
