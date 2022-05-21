@@ -25,13 +25,13 @@ class PHP_Compat
 	 * @param   string|array    $function   The function or functions to load
 	 * @return  bool|array      TRUE if loaded, FALSE if not
 	 */
-	function loadFunction($function)
+	function loadFunction(array|string $function): array|bool
 	{
 		// Multiple
 		if (is_array($function)) {
 			$res = array();
 			foreach ($function as $singlefunc) {
-				$res[$singlefunc] = PHP_Compat::loadFunction($singlefunc);
+				$res[$singlefunc] = (new PHP_Compat())->loadFunction($singlefunc);
 			}
 
 			return $res;
@@ -53,7 +53,7 @@ class PHP_Compat
 
 		// Single
 		if (!function_exists($function)) {
-			$file = sprintf(dirname(__FILE__) . '/Compat/Function/%s.php', $function);
+			$file = sprintf(__DIR__ . '/Compat/Function/%s.php', $function);
 			if ((@include_once $file) !== false) {
 				return true;
 			}
@@ -69,20 +69,20 @@ class PHP_Compat
 	 * @param   string|array	$constant   The constant or constants to load
 	 * @return  bool|array	  TRUE if loaded, FALSE if not
 	 */
-	function loadConstant($constant)
+	function loadConstant(array|string $constant): array|bool
 	{
 		// Multiple
 		if (is_array($constant)) {
 			$res = array();
 			foreach ($constant as $singleconst) {
-				$res[$singleconst] = PHP_Compat::loadConstant($singleconst);
+				$res[$singleconst] = (new PHP_Compat())->loadConstant($singleconst);
 			}
 			
 			return $res;
 		}
 		
 		// Single
-		$file = sprintf(dirname(__FILE__) . '/Compat/Constant/%s.php', $constant);
+		$file = sprintf(__DIR__ . '/Compat/Constant/%s.php', $constant);
 		if ((@include_once $file) !== false) {
 			return true;
 		}
@@ -101,7 +101,7 @@ class PHP_Compat
 	function loadEnvironment($environment, $setting)
 	{
 		// Load environment
-		$file = sprintf(dirname(__FILE__) . '/Compat/Environment/%s_%s.php', $environment, $setting);
+		$file = sprintf(__DIR__ . '/Compat/Environment/%s_%s.php', $environment, $setting);
 		if ((@include_once $file) !== false) {
 			return true;
 		}
@@ -122,7 +122,7 @@ class PHP_Compat
 		require 'PHP/Compat/Components.php';
 
 		// Include version_compare to work with older versions
-		PHP_Compat::loadFunction('version_compare');
+		(new PHP_Compat())->loadFunction('version_compare');
 		
 		// Init
 		$phpversion = phpversion();

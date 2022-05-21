@@ -1,6 +1,6 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots/sonots.class.php');
-require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
+require_once(__DIR__ . '/sonots/sonots.class.php');
+require_once(__DIR__ . '/sonots/metapage.class.php');
 //error_reporting(E_ALL);
 
 /**

@@ -1,6 +1,6 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots/sonots.class.php');
-require_once(dirname(__FILE__) . '/sonots/tag.class.php');
+require_once(__DIR__ . '/sonots/sonots.class.php');
+require_once(__DIR__ . '/sonots/tag.class.php');
 //error_reporting(E_ALL);
 
 /**
@@ -19,7 +19,7 @@ require_once(dirname(__FILE__) . '/sonots/tag.class.php');
 
 class PluginTagcloud
 {
-	function PluginTagcloud()
+	function __construct()
 	{
 		static $conf_options = array();
 		if (empty($conf_options)) {

@@ -12,7 +12,7 @@ class Test_PluginSonotsMetapage extends UnitTestCase
 	function test_relname()
 	{
 		$this->assertEqual(PluginSonotsMetapage::relname('Hoge/A', ''), 'Hoge/A');
-		$this->assertEqual(PluginSonotsMetapage::relname('Hoge/A', sonots::get_dirname('Hoge/')), 'A');
+		$this->assertEqual(PluginSonotsMetapage::relname('Hoge/A', (new sonots())->get_dirname('Hoge/')), 'A');
 	}
 
 	function test_depth()

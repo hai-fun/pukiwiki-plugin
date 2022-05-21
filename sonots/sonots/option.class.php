@@ -1,12 +1,12 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots.class.php');
+require_once(__DIR__ . '/sonots.class.php');
 
 /**
  * Advanced Option Parser for PukiWiki Plugin
  *
  * Example1)
  * <code>
- *  function plugin_hoge_convert()
+ *  static function plugin_hoge_convert()
  *  {
  *	  $conf_options = array(
  *		  'num' => array('number', 100),
@@ -22,7 +22,7 @@ require_once(dirname(__FILE__) . '/sonots.class.php');
  *
  * Example2)
  * <code>
- *  function plugin_hoge_inline()
+ *  static function plugin_hoge_inline()
  *  {
  *	  $args = func_get_args();
  *	  array_pop($args); // drop {}
@@ -34,7 +34,7 @@ require_once(dirname(__FILE__) . '/sonots.class.php');
  *
  * Example3)
  * <code>
- *  function plugin_hoge_action()
+ *  static function plugin_hoge_action()
  *  {
  *	  global $vars;
  *	  $conf_options = array(
@@ -97,12 +97,12 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.5 2008-06-07 11:14:46 sonots $
 	 * @since   v 1.0
 	 */
-	function parse_option_line($line, $trim = false, $decode = true)
+	static function parse_option_line($line, $trim = false, $decode = true)
 	{
-		$array = sonots::string_to_array($line, '=', ',', '(', ')', $decode);
-		$options = PluginSonotsOption::numeric_to_boolean($array);
+		$array = (new sonots())->string_to_array($line, '=', ',', '(', ')', $decode);
+		$options = (new PluginSonotsOption())->numeric_to_boolean($array);
 		if ($trim) {
-			$options = sonots::trim_array($options, true, true);
+			$options = (new sonots())->trim_array($options, true, true);
 		}
 		return $options;
 	}
@@ -124,10 +124,10 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.0 2008-06-07 11:14:46 sonots $
 	 * @since   v 1.4
 	 */
-	function glue_option_line($options, $encode = true)
+	static function glue_option_line($options, $encode = true)
 	{
-		$array = PluginSonotsOption::boolean_to_numeric($options);
-		return sonots::array_to_string($array, '=', ',', '(', ')', $encode);
+		$array = (new PluginSonotsOption())->boolean_to_numeric($options);
+		return (new sonots())->array_to_string($array, '=', ',', '(', ')', $encode);
 	}
 
 	/**
@@ -146,10 +146,10 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.0 2008-07-16 11:14:46 sonots $
 	 * @since   v 1.8
 	 */
-	function glue_uri_option_line($options)
+	static function glue_uri_option_line($options)
 	{
-		$array = PluginSonotsOption::boolean_to_numeric($options);
-		$string = sonots::array_to_string($array, '=', '&', '(', ')', true);
+		$array = (new PluginSonotsOption())->boolean_to_numeric($options);
+		$string = (new sonots())->array_to_string($array, '=', '&', '(', ')', true);
 		$args = explode('&', $string);
 		foreach ($args as $i => $arg) {
 			$vars = explode('=', $arg);
@@ -179,14 +179,14 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.0 2008-07-16 11:14:46 sonots $
 	 * @since   v 1.8
 	 */
-	function parse_uri_option_line($vars)
+	static function parse_uri_option_line($vars)
 	{
 		$args = array();
 		foreach ($vars as $key => $val) {
 			$args[] = empty($val) ? $key : $key . '=' . $val;
 		}
 		$argline = implode(',', $args);
-		$options = PluginSonotsOption::parse_option_line($argline);
+		$options = (new PluginSonotsOption())->parse_option_line($argline);
 		return $options;
 	}
 
@@ -207,14 +207,14 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.0 2008-06-07 11:14:46 sonots $
 	 * @since   v 1.4
 	 */
-	function numeric_to_boolean($array)
+	static function numeric_to_boolean($array)
 	{
 		$options = array();
 		foreach ($array as $key => $val) {
 			if (is_numeric($key)) {
 				$options[$val] = true;
 			} elseif (is_array($val)) {
-				$options[$key] = PluginSonotsOption::numeric_to_boolean($val);
+				$options[$key] = (new PluginSonotsOption())->numeric_to_boolean($val);
 			} else {
 				$options[$key] = $val;
 			}
@@ -233,14 +233,14 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.0 2008-06-07 11:14:46 sonots $
 	 * @since   v 1.4
 	 */
-	function boolean_to_numeric($options)
+	static function boolean_to_numeric($options)
 	{
 		$array = array();
 		foreach ($options as $key => $val) {
 			if ($val === true) {
 				$array[] = $key;
 			} elseif (is_array($val)) {
-				$array[$key] = PluginSonotsOption::boolean_to_numeric($val);
+				$array[$key] = (new PluginSonotsOption())->boolean_to_numeric($val);
 			} else {
 				$array[$key] = $val;
 			}
@@ -329,19 +329,19 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.6 2008-06-12 11:14:46 sonots $
 	 * @since   v 1.0
 	 */
-	function evaluate_options($options, $conf_options)
+	static function evaluate_options($options, $conf_options)
 	{
 		$default = array();
 		foreach ($conf_options as $key => $tmp) {
-			$default[$key] = isset($conf_options[$key][1]) ? $conf_options[$key][1] : null;
+			$default[$key] = $conf_options[$key][1] ?? null;
 		}
 		$options = array_merge($default, $options);
 		$unknowns = array();
 		foreach ($options as $key => $val) {
 			if (isset($conf_options[$key])) {
-				$type = isset($conf_options[$key][0]) ? $conf_options[$key][0] : null;
-				$conf = isset($conf_options[$key][2]) ? $conf_options[$key][2] : null;
-				list($options[$key], $unknowns[$key]) = PluginSonotsOption::evaluate_option($val, $type, $conf);
+				$type = $conf_options[$key][0] ?? null;
+				$conf = $conf_options[$key][2] ?? null;
+				[$options[$key], $unknowns[$key]] = (new PluginSonotsOption())->evaluate_option($val, $type, $conf);
 				if (is_null($unknowns[$key])) unset($unknowns[$key]);
 			} else {
 				unset($options[$key]);
@@ -375,7 +375,7 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.7 2008-07-30 11:14:46 sonots $
 	 * @since   v 1.0
 	 */
-	function evaluate_option($val, $type, $conf = null)
+	static function evaluate_option($val, $type, $conf = null)
 	{
 		if (is_null($val)) {
 			return array(null, null);
@@ -420,7 +420,7 @@ class PluginSonotsOption {
 				$retval = is_array($conf) ? $conf : null;
 				break;
 			}
-			$retval = PluginSonotsOption::boolean_to_numeric((array)$val);
+			$retval = (new PluginSonotsOption())->boolean_to_numeric((array)$val);
 			break;
 		case 'enum':
 			if ($val === true) {
@@ -440,7 +440,7 @@ class PluginSonotsOption {
 			}
 			$retval = array();
 			$unknown = array();
-			$val = PluginSonotsOption::boolean_to_numeric((array)$val);
+			$val = (new PluginSonotsOption())->boolean_to_numeric((array)$val);
 			foreach ($val as $elem) {
 				if (in_array($elem, $conf)) {
 					$retval[] = $elem;
@@ -455,7 +455,7 @@ class PluginSonotsOption {
 			if ($val === true) {
 				$val = array();
 			}
-			list($retval, $unknown) = PluginSonotsOption::evaluate_options($val, $conf);
+			[$retval, $unknown] = (new PluginSonotsOption())->evaluate_options($val, $conf);
 			if (empty($retval)) $retval = null;
 			if (empty($unknown)) $unknown = null;
 			break;
@@ -476,7 +476,7 @@ class PluginSonotsOption {
 				$val = is_array($conf) ? $conf[0] : $conf;
 			}
 			$start = is_array($conf) ? $conf[1] : 1;
-			$retval = PluginSonotsOption::parse_interval($val, $start);
+			$retval = (new PluginSonotsOption())->parse_interval($val, $start);
 			if (is_null($retval)) {
 				$unknown = $val;
 			}
@@ -512,7 +512,7 @@ class PluginSonotsOption {
 	 * @uses PluginSonotsOption::evaluate_options
 	 */
 	/*
-	function evaluate_option($val, $type, $conf = null)
+	static function evaluate_option($val, $type, $conf = null)
 	{
 		switch ($type) {
 		case 'bool':
@@ -611,12 +611,12 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.1 2008-07-17 11:14:46 sonots $
 	 * @since   v 1.0
 	 */
-	function parse_interval($interval, $start = 1)
+	static function parse_interval($interval, $start = 1)
 	{
 		if ($start != 1 && $start != 0) return null;
 		$mini = 1; 
-		if (strpos($interval, ':') !== false) {
-			list($min, $max) = explode(':', $interval, 2);
+		if (str_contains($interval, ':')) {
+			[$min, $max] = explode(':', $interval, 2);
 			if (is_numeric($min)) {
 				$min = (int)$min;
 			} else {
@@ -630,8 +630,8 @@ class PluginSonotsOption {
 			} else {
 				$len = null;
 			}
-		} elseif (strpos($interval, '+') !== false) {
-			list($min, $len) = explode("+", $interval, 2);
+		} elseif (str_contains($interval, '+')) {
+			[$min, $len] = explode("+", $interval, 2);
 			if (is_numeric($min)) {
 				$min = (int)$min;
 			} else {
@@ -679,10 +679,10 @@ class PluginSonotsOption {
 	 * @version $Id: v 1.1 2008-07-17 11:14:46 sonots $
 	 * @since   v 1.0
 	 */
-	function conv_interval($interval, $entire = array(1, PHP_INT_MAX))
+	static function conv_interval($interval, $entire = array(1, PHP_INT_MAX))
 	{
-		list($offset, $length) = $interval;
-		list($min, $max)	   = $entire;
+		[$offset, $length] = $interval;
+		[$min, $max]	   = $entire;
 		// minus means index from back
 		if ($offset < 0) {
 			$start = $offset + $max + 1;

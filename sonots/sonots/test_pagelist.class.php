@@ -10,7 +10,7 @@ require_once('pukiwiki.php');
 class Test_PluginSonotsPagelist extends UnitTestCase
 {
 	var $pages;
-	function Test_PluginSonotsPagelist()
+	function __construct()
 	{
 		$this->pages = array
 			(
@@ -25,13 +25,14 @@ class Test_PluginSonotsPagelist extends UnitTestCase
 	}
 	function test_prefix()
 	{
+		$turh = null;
 		$pagelist = new PluginSonotsPagelist($this->pages);
 		$prefix = 'test/a/';
 		$pagelist->grep_by('page', 'prefix', $prefix);
 		$pages = $pagelist->get_metas('page');
 		$truth = array('test/a/aa', 'test/a/aa/aaa', 'test/a/bb/bbb');
 		$this->assertTrue($pages, $truth);
-		$pagelist->gen_metas('relname', array(sonots::get_dirname($prefix)));
+		$pagelist->gen_metas('relname', array((new sonots())->get_dirname($prefix)));
 		$relnames = $pagelist->get_metas('relname');
 		$truth = array('aa', 'aa/aaa', 'bb/bbb');
 		$this->assertTrue($relnames, $turh);
@@ -104,9 +105,9 @@ class Test_PluginSonotsPagelist extends UnitTestCase
 			 );
 		$this->assertTrue($depths, $truth);
 		// do not use negative interval for depth
-		$depth = PluginSonotsOption::parse_interval('2:3');
-		list($offset, $length) = $depth;
-		list($min, $max) = PluginSonotsOption::conv_interval(array($offset, $length), array(1, PHP_INT_MAX));
+		$depth = (new PluginSonotsOption())->parse_interval('2:3');
+		[$offset, $length] = $depth;
+		[$min, $max] = (new PluginSonotsOption())->conv_interval(array($offset, $length), array(1, PHP_INT_MAX));
 		$pagelist->grep_by('depth', 'ge', $min);
 		$pagelist->grep_by('depth', 'le', $max);
 		$pages = $pagelist->get_metas('page');
@@ -121,7 +122,7 @@ class Test_PluginSonotsPagelist extends UnitTestCase
 		$pagelist = new PluginSonotsPagelist($this->pages);
 		$prefix = 'test/a/';
 		$pagelist->grep_by('page', 'prefix', $prefix);
-		$pagelist->gen_metas('relname', array(sonots::get_dirname($prefix)));
+		$pagelist->gen_metas('relname', array((new sonots())->get_dirname($prefix)));
 		$pagelist->gen_metas('depth');
 		$depths = $pagelist->get_metas('depth');
 		$truth = array 

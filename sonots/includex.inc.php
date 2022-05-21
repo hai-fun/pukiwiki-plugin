@@ -1,8 +1,8 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots/sonots.class.php');
-require_once(dirname(__FILE__) . '/sonots/option.class.php');
-require_once(dirname(__FILE__) . '/sonots/toc.class.php');
-require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
+require_once(__DIR__ . '/sonots/sonots.class.php');
+require_once(__DIR__ . '/sonots/option.class.php');
+require_once(__DIR__ . '/sonots/toc.class.php');
+require_once(__DIR__ . '/sonots/metapage.class.php');
 //error_reporting(E_ALL);
 
 /**
@@ -20,7 +20,7 @@ require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
  */
 class PluginIncludex 
 {
-	function PluginIncludex()
+	function __construct()
 	{
 		// Configure options
 		// array(type, default, config)
@@ -72,19 +72,19 @@ class PluginIncludex
 			$args = func_get_args(); 
 			$inclpage = array_shift($args);
 
-			$current  = isset($vars['page']) ? $vars['page'] : $defaultpage;
+			$current  = $vars['page'] ?? $defaultpage;
 			$this->visited[$current]  = TRUE;
-			$inclpage = PluginIncludex::check_page($inclpage, $current, $this->visited);
+			$inclpage = (new PluginIncludex())->check_page($inclpage, $current, $this->visited);
 			if (sonots::mycatch()) break;
 			$this->visited[$inclpage] = TRUE;
 			
 			$argline = csv_implode(',', $args);
 			$argoptions = PluginSonotsOption::parse_option_line($argline);
-			list($options, $unknowns) = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
-			$options = PluginIncludex::check_options($options, $unknowns, $argoptions);
+			[$options, $unknowns] = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
+			$options = (new PluginIncludex())->check_options($options, $argoptions, $unknowns);
 			if (sonots::mycatch()) break;
 			
-			$html = PluginIncludex::display_include($inclpage, $options, $this->syntax);
+			$html = (new PluginIncludex())->display_include($inclpage, $options, $this->syntax);
 			return $html;
 		} while (false);
 		if (sonots::mycatch()) { // catch
@@ -108,7 +108,7 @@ class PluginIncludex
 		$lines = get_source($page);
 
 		if (is_array($options['section'])) {
-			$lines = PluginIncludex::get_sections($lines, $page, $options['section']);
+			$lines = (new PluginIncludex())->get_sections($lines, $page, $options['section']);
 		}
 
 		if (isset($options['readmore'])) {
@@ -138,14 +138,14 @@ class PluginIncludex
 			$lines = sonots::grep_array('/' . str_replace('/', '\/', $options['except']) . '/', $lines, 'preg', TRUE, TRUE); // inverse
 		}
 		if (is_array($options['num'])) {
-			list($offset, $length) = $options['num'];
+			[$offset, $length] = $options['num'];
 			$lines = sonots::array_slice($lines, $offset, $length, true);
 		}
 
 		if (! $options['firsthead']) {
 			// cut the headline on the first line
 			$firstline = reset($lines);
-			if (preg_match($syntax['headline'], $firstline)) {
+			if (preg_match($syntax['headline'], (string) $firstline)) {
 				array_shift($lines);
 			}
 		}
@@ -158,7 +158,7 @@ class PluginIncludex
 		if ($options['titlestr'] !== 'off') {
 			$titlestr = PluginSonotsMetapage::linkstr($page, $options['titlestr'], $vars['page'], true);
 		}
-		$title = PluginIncludex::display_title($page, $titlestr, $options['title'], $GLOBALS['fixed_heading_edited'], 'includex');
+		$title = (new PluginIncludex())->display_title($page, $titlestr, $options['title'], $GLOBALS['fixed_heading_edited'], 'includex');
 
 		$footer = '';
 		if (is_string($options['permalink'])) {
@@ -200,7 +200,7 @@ class PluginIncludex
 		}
 		if (is_array($options['depth'])) {
 			// Do not use negative offsets
-			list($min, $max) = PluginSonotsOption::conv_interval($options['depth'], array(1, PHP_INT_MAX));
+			[$min, $max] = PluginSonotsOption::conv_interval($options['depth'], array(1, PHP_INT_MAX));
 			sonots::grep_by($headlines, 'depth', 'ge', $min);
 			sonots::grep_by($headlines, 'depth', 'le', $max);
 		}
@@ -208,7 +208,7 @@ class PluginIncludex
 
 		if (is_array($options['num'])) {
 			array_unshift($headlines, new PluginSonotsHeadline($page, 0, 0, '', ''));
-			list($offset, $length) = $options['num'];
+			[$offset, $length] = $options['num'];
 			$headlines = sonots::array_slice($headlines, $offset, $length, true);
 		}
 		$linenums = sonots::get_members($headlines, 'linenum');
@@ -216,8 +216,9 @@ class PluginIncludex
 		// extract from current head till next head - 1
 		$allheadlines = $toc->get_headlines();
 		$alllinenums = sonots::get_members($allheadlines, 'linenum');
-		if (! isset($alllinenums[0])) array_unshift($alllinenums, 0); // virtual head at the file head
-		array_push($alllinenums, end(array_keys($lines)) + 1); // virtual head at the file tail
+		if (! isset($alllinenums[0])) array_unshift($alllinenums, 0);
+		$arrayKeys = array_keys($lines); // virtual head at the file head
+		array_push($alllinenums, end($arrayKeys) + 1); // virtual head at the file tail
 		$outlines = array();
 		$current = 0;
 		foreach ($alllinenums as $next) {
@@ -239,7 +240,7 @@ class PluginIncludex
 	 * @param array $argoptions options before evaluated
 	 * @return array $options
 	 */	 
-	function check_options($options, $unknowns = array(), $argoptions)
+	function check_options($options, $argoptions, $unknowns = array())
 	{
 		if ($options['title'] != 'on') {
 			if ($options['title'] == 'nolink') {

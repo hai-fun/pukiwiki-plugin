@@ -18,9 +18,8 @@
  */
 class PluginSonotsTag extends Tag
 {
-	function PluginSonotsTag()
+	function __construct()
 	{
-		parent::Tag();
 	}
 
 	 /**
@@ -233,7 +232,7 @@ class Tag
 	 */
 	var $reserved_keys;
 
-	function Tag()
+	function __construct()
 	{
 		// php4 static variable trick
 		static $reserved_keys = array('prod' => '^', 'diff' => '-');
@@ -292,7 +291,7 @@ class Tag
 	function set_tags($item, $tags, $storage = true)
 	{
 		$tags = $this->normalize_tags($tags);
-		if (count($tags) == count(array_intersect($tags, $this->get_tags($item)))) {
+		if ((is_countable($tags) ? count($tags) : 0) == count(array_intersect($tags, $this->get_tags($item)))) {
 			return true;
 		}
 		$this->tags[$item] = $tags;
@@ -617,7 +616,7 @@ class Tag
 		$ret = true;
 		if (! empty($this->items)) { // update
 			foreach ($this->items as $tag => $items) {
-				$count = count($items);
+				$count = is_countable($items) ? count($items) : 0;
 				if ($count === 0) {
 					unset($tagcloud[$tag]);
 				} else {
@@ -671,7 +670,7 @@ class Tag
 		$token  = implode('', $reserved_keys);
 		$substr = strtok($tagtok, $token);
 		array_push($tags, $substr);
-		$tokpos = $tokpos + strlen($substr) + 1;
+		$tokpos = $tokpos + strlen((string) $substr) + 1;
 		$substr = strtok($token);
 		while ($substr !== false) {
 			switch ($tagtok[$tokpos]) {
@@ -687,19 +686,11 @@ class Tag
 			$tokpos = $tokpos + strlen($substr) + 1;
 			$substr = strtok($token);
 		}
-
-		// narrow items
-		$items = $this->get_items(array_shift($tags));
 		foreach ($tags as $i => $tag) {
-			switch ($operands[$i]) {
-			case $reserved_keys['diff']:
-				$items = array_diff($items, $this->get_items($tag));
-				break;
-			case $reserved_keys['prod']:
-			default:
-				$items = array_intersect($items, $this->get_items($tag));
-				break;
-			}
+			$items = match ($operands[$i]) {
+				$reserved_keys['diff'] => array_diff($items, $this->get_items($tag)),
+				default => array_intersect($items, $this->get_items($tag)),
+			};
 		}
 		return $items;
 	}
@@ -893,7 +884,7 @@ class Tag
 			if (empty($lines)) return array();
 			$lines = array_map('rtrim', $lines);
 			foreach ($lines as $line) {
-				list($tag, $count) = explode("\t", $line);
+				[$tag, $count] = explode("\t", $line);
 				$tagcloud[$tag] = $count;
 			}
 		}
@@ -1024,7 +1015,7 @@ class TagCloud
 	 */
 	var $urls;
 	
-	function TagCloud()
+	function __construct()
 	{
 		$this->counts = array();
 		$this->urls = array();

@@ -1,8 +1,8 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots/sonots.class.php');
-require_once(dirname(__FILE__) . '/sonots/option.class.php');
-require_once(dirname(__FILE__) . '/sonots/toc.class.php');
-require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
+require_once(__DIR__ . '/sonots/sonots.class.php');
+require_once(__DIR__ . '/sonots/option.class.php');
+require_once(__DIR__ . '/sonots/toc.class.php');
+require_once(__DIR__ . '/sonots/metapage.class.php');
 //error_reporting(E_ALL);
 
 /**
@@ -20,7 +20,7 @@ require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
  */
 class PluginContentsx
 {
-	function PluginContentsx()
+	function __construct()
 	{
 		// Configure options
 		// array(type, default, config)
@@ -57,18 +57,19 @@ class PluginContentsx
 	 */
 	function convert()
 	{
-		sonots::init_myerror(); do { // try
+		sonots::init_myerror();
+		do { // try
 			global $vars, $defaultpage;
 			$args = func_get_args(); $line = csv_implode(',', $args);
 			$options = PluginSonotsOption::parse_option_line($line);
-			list($options, $unknowns) = PluginSonotsOption::evaluate_options($options, $this->conf_options);
-			$current = isset($vars['page']) ? $vars['page'] : $defaultpage;
-			$page	= isset($options['page']) ? $options['page'] : $current;
-			$page	= PluginContentsx::check_page($page, $current);
-			$options = PluginContentsx::check_options($page, $current, $options, $unknowns);
+			[$options, $unknowns] = PluginSonotsOption::evaluate_options($options, $this->conf_options);
+			$current = $vars['page'] ?? $defaultpage;
+			$page	= $options['page'] ?? $current;
+			$page	= (new PluginContentsx())->check_page($page, $current);
+			$options = (new PluginContentsx())->check_options($page, $current, $options, $unknowns);
 			if (sonots::mycatch()) break;
 
-			$html = PluginContentsx::display_toc($page, $options);
+			$html = (new PluginContentsx())->display_toc($page, $options);
 			if ($html != '') {
 			$html = '<table border="0" class="toc"><tbody>' . "\n"
 				. '<tr><td class="toctitle">' . "\n"
@@ -171,19 +172,19 @@ class PluginContentsx
 		}
 		if (is_array($options['depth'])) {
 			// Do not use negative offsets
-			list($min, $max) = PluginSonotsOption::conv_interval($options['depth'], array(1, PHP_INT_MAX));
+			[$min, $max] = PluginSonotsOption::conv_interval($options['depth'], array(1, PHP_INT_MAX));
 			sonots::grep_by($headlines, 'depth', 'ge', $min);
 			sonots::grep_by($headlines, 'depth', 'le', $max);
 		}
 		if (is_array($options['num'])) {
-			list($offset, $length) = $options['num'];
+			[$offset, $length] = $options['num'];
 			$headlines = sonots::array_slice($headlines, $offset, $length, true);
 		}
 		
 		if ($options['hierarchy']) {
-			if ($options['include'] && count($toc->get_includes()) >= 1) {
+			if ($options['include'] && (is_countable($toc->get_includes()) ? count($toc->get_includes()) : 0) >= 1) {
 				// depth of included page is 0, shift up
-				sonots::map_members($headlines, 'depth', create_function('$x','return $x+1;'));
+				sonots::map_members($headlines, 'depth', fn($x) => $x + 1);
 			}
 			if ($options['compact']) {
 				PluginSonotsToc::compact_depth($headlines);
@@ -221,7 +222,7 @@ class PluginContentsx
 		set_time_limit(0);
 		global $vars;
 
-		$page = isset($vars['page']) ? $vars['page'] : '';
+		$page = $vars['page'] ?? '';
 		if ($page != '') {
 			$toc = new PluginSonotsToc();
 			$file = $toc->syntax['cachefile']($page);

@@ -1,13 +1,13 @@
 <?php
-require_once(dirname(__FILE__) . '/Compat.php');
-require_once(dirname(__FILE__) . '/Compat/Function/str_split.php');
-require_once(dirname(__FILE__) . '/Compat/Function/array_diff_key.php');
-require_once(dirname(__FILE__) . '/Compat/Function/array_fill.php');
-require_once(dirname(__FILE__) . '/Compat/Function/array_intersect_key.php');
-require_once(dirname(__FILE__) . '/Compat/Function/array_slice.php');
-require_once(dirname(__FILE__) . '/Compat/Function/file_get_contents.php');
-require_once(dirname(__FILE__) . '/Compat/Function/file_put_contents.php');
-require_once(dirname(__FILE__) . '/Compat/Function/mkdir.php');
+require_once(__DIR__ . '/Compat.php');
+require_once(__DIR__ . '/Compat/Function/str_split.php');
+require_once(__DIR__ . '/Compat/Function/array_diff_key.php');
+require_once(__DIR__ . '/Compat/Function/array_fill.php');
+require_once(__DIR__ . '/Compat/Function/array_intersect_key.php');
+require_once(__DIR__ . '/Compat/Function/array_slice.php');
+require_once(__DIR__ . '/Compat/Function/file_get_contents.php');
+require_once(__DIR__ . '/Compat/Function/file_put_contents.php');
+require_once(__DIR__ . '/Compat/Function/mkdir.php');
 
 /**
  * Namespace sonots (sonots' additional functions)
@@ -44,7 +44,7 @@ class sonots
 	 * @return array compacted levels (keys, sequences are preserved)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function compact_list($levels)
+	static function compact_list($levels)
 	{
 		// 1) simply fill in non-existing level
 		// 1 3 1 1 3 3 1 => 1 2 1 1 2 2 1 (move 3 to 2 coz 2 was none)
@@ -60,7 +60,7 @@ class sonots
 		// 1 3 == (0=>1,1=>3) => (exchange key/val) (1=>0,3=>1) 
 		// => (add 1) (1=>1,3=>2)
 		$mapper = array_flip($uniq);
-		$mapper = array_map(create_function('$x', 'return $x+1;'), $mapper);
+		$mapper = array_map(fn($x) => $x + 1, $mapper);
 		// 1.3) mapping
 		foreach ($levels as $i => $level) {
 			$levels[$i] = $mapper[$level];
@@ -90,7 +90,7 @@ class sonots
 	 * @return string html
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_convert_html($page, $lines)
+	static function get_convert_html($page, $lines)
 	{
 		global $vars, $get, $post;
 		$tmp = $vars['page'];
@@ -118,7 +118,7 @@ class sonots
 	 * @return string form html
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function display_password_form($action, $message = "", $use_session = true, $use_authlog = true)
+	static function display_password_form($action, $message = "", $use_session = true, $use_authlog = true)
 	{
 		if ($message != '') {
 			$message = '<p><b>' . htmlspecialchars($message) . '</b></p>';
@@ -127,7 +127,7 @@ class sonots
 		$form = array();
 		$form[] = '<form action="' . htmlspecialchars($action) . '" method="post">';
 		$form[] = '<div>';
-		if (! sonots::is_admin(null, $use_session, $use_authlog)) {
+		if (! (new sonots())->is_admin(null, $use_session, $use_authlog)) {
 			$form[] = ' <input type="password" name="pass" size="24" value="" /> ' . _('Admin Password') . '<br />';
 		}
 		$form[] = ' <input type="submit" name="submit" value="Submit" /><br />';
@@ -166,24 +166,24 @@ class sonots
 	 * @return array options
 	 * @version $Id: v 1.1 2008-06-05 11:14:46 sonots $
 	 */
-	function parse_options($args, $conf_options = array(), $trim = false, $sep = '=')
+	static function parse_options($args, $conf_options = array(), $trim = false, $sep = '=')
 	{
 		$options = $conf_options;
 		if (empty($conf_options)) {
 			foreach ($args as $arg) {
-				list($key, $val) = array_pad(explode($sep, $arg, 2), 2, true);
+				[$key, $val] = array_pad(explode($sep, (string) $arg, 2), 2, true);
 				$options[$key] = $val;
 			}
 		} else { // check option keys
 			foreach ($args as $arg) {
-				list($key, $val) = array_pad(explode($sep, $arg, 2), 2, true);
+				[$key, $val] = array_pad(explode($sep, (string) $arg, 2), 2, true);
 				if (array_key_exists($key, $conf_options)) {
 					$options[$key] = $val;
 				}
 			}
 		}
 		if ($trim) {
-			$options = sonots::trim_array($options, true, true);
+			$options = (new sonots())->trim_array($options, true, true);
 		}
 		return $options;
 	}
@@ -202,13 +202,13 @@ class sonots
 	 * @uses sonots::sort_filenames
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_tree($pages)
+	static function get_tree($pages)
 	{
-		sonots::sort_filenames($pages);
+		(new sonots())->sort_filenames($pages);
 		$currpage = current($pages);
 		$leafs = array();
 		while ($nextpage = next($pages)) {
-			if (strpos($nextpage, $currpage . '/') === false) {
+			if (!str_contains((string) $nextpage, $currpage . '/')) {
 				$leafs[$currpage] = true;
 			} else {
 				$leafs[$currpage] = false;
@@ -234,7 +234,7 @@ class sonots
 	 * @see make_link (PukiWiki lib/make_link.php)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function make_inline($string, $page = '')
+	static function make_inline($string, $page = '')
 	{
 		global $vars;
 		static $converter;
@@ -257,7 +257,7 @@ class sonots
 	 * @return void
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function remove_multilineplugin_lines(&$lines)
+	static function remove_multilineplugin_lines(&$lines)
 	{
 		if(! (defined('PKWKEXP_DISABLE_MULTILINE_PLUGIN_HACK') && 
 			  PKWKEXP_DISABLE_MULTILINE_PLUGIN_HACK === 0)) {
@@ -267,11 +267,11 @@ class sonots
 		foreach ($lines as $i => $line) {
 			$matches = array();
 			if ($multiline < 2) {
-				if(preg_match('/^#([^\(\{]+)(?:\(([^\r]*)\))?(\{*)/', $line, $matches)) {
-					$multiline  = strlen($matches[3]);
+				if(preg_match('/^#([^\(\{]+)(?:\(([^\r]*)\))?(\{*)/', (string) $line, $matches)) {
+					$multiline  = strlen((string) $matches[3]);
 				}
 			} else {
-				if (preg_match('/^\}{' . $multiline . '}$/', $line, $matches)) {
+				if (preg_match('/^\}{' . $multiline . '}$/', (string) $line, $matches)) {
 					$multiline = 0;
 				}
 				unset($lines[$i]);
@@ -293,7 +293,7 @@ class sonots
 	 * @uses is_interwiki (PukiWiki lib/func.php)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function is_interwiki($str)
+	static function is_interwiki($str)
 	{
 		return ! is_url($str) && is_interwiki($str);
 	}
@@ -312,10 +312,10 @@ class sonots
 	 * @uses get_interwiki_url (PukiWiki lib/func.php)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_interwiki_url($interwiki)
+	static function get_interwiki_url($interwiki)
 	{
 		if (is_url($interwiki) || ! is_interwiki($interwiki)) return false;
-		list($interwiki, $page) = explode(':', $interwiki, 2);
+		[$interwiki, $page] = explode(':', $interwiki, 2);
 		$url = get_interwiki_url($interwiki, $page);
 		return $url;
 	}
@@ -333,7 +333,7 @@ class sonots
 	 * @uses pkwk_common_headers (PukiWiki lib/html.php)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function pkwk_output_noskin($body, $content_type = 'text/html') // text/css, text/javascript
+	static function pkwk_output_noskin($body, $content_type = 'text/html'): never // text/css, text/javascript
 	{
 		pkwk_common_headers();
 		header('Content-Type: ' . $content_type);
@@ -353,7 +353,7 @@ class sonots
 	 * @return string uri
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_page_uri($page, $query = '')
+	static function get_page_uri($page, $query = '')
 	{
 		if (function_exists('get_script_uri')) { // from pukiwiki 1.4
 			$url = get_script_uri() . '?' . rawurlencode($page);
@@ -379,12 +379,12 @@ class sonots
 	 * @uses get_existpages() (PukiWiki lib/file.php)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_existpages($prefix = '')
+	static function get_existpages($prefix = '')
 	{
 		$pages = get_existpages();
 		if ($prefix === '') return $pages;
 		foreach ($pages as $i => $page) {
-			if (strpos($page, $prefix) !== 0) {
+			if (!str_starts_with($page, $prefix)) {
 				unset($pages[$i]);
 			}
 		}
@@ -406,7 +406,7 @@ class sonots
 	 * @return boolean
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function is_read_auth($page, $user = '')
+	static function is_read_auth($page, $user = '')
 	{
 		global $read_auth, $read_auth_pages, $auth_method_type;
 		if (! $read_auth) {
@@ -421,8 +421,8 @@ class sonots
 		}
 	   
 		foreach($read_auth_pages as $regexp => $users) {
-			if (preg_match($regexp, $target_str)) {
-				if ($user == '' || in_array($user, explode(',', $users))) {
+			if (preg_match($regexp, (string) $target_str)) {
+				if ($user == '' || in_array($user, explode(',', (string) $users))) {
 					return true;
 				}
 			}
@@ -444,7 +444,7 @@ class sonots
 	 * @return boolean
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function is_edit_auth($page, $user = '')
+	static function is_edit_auth($page, $user = '')
 	{
 		global $edit_auth, $edit_auth_pages, $auth_method_type;
 		if (! $edit_auth) {
@@ -460,7 +460,7 @@ class sonots
 
 		foreach($edit_auth_pages as $regexp => $users) {
 			if (preg_match($regexp, $target_str)) {
-				if ($user == '' || in_array($user, explode(',', $users))) {
+				if ($user == '' || in_array($user, explode(',', (string) $users))) {
 					return true;
 				}
 			}
@@ -481,9 +481,9 @@ class sonots
 	 * @uses is_freeze (PukiWiki lib/func.php)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function is_edit_restrict($page)
+	static function is_edit_restrict($page)
 	{
-		return PKWK_READONLY > 0 or is_freeze($page) or sonots::is_edit_auth($page);
+		return PKWK_READONLY > 0 or is_freeze($page) or (new sonots())->is_edit_auth($page);
 	}
 
 	/**
@@ -501,10 +501,10 @@ class sonots
 	 * @uses convert_html (PukiWiki lib/convert_html.php)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function exec_existpages($prefix = '', $regexp = null)
+	static function exec_existpages($prefix = '', $regexp = null)
 	{
 		global $vars, $get, $post;
-		$pages = sonots::get_existpages($prefix);
+		$pages = (new sonots())->get_existpages($prefix);
 		$exec_pages = array();
 		$tmp_page = $vars['page'];
 		$tmp_cmd  = $vars['cmd'];
@@ -538,7 +538,7 @@ class sonots
 	 * @uses convert_html (PukiWiki lib/convert_html.php)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function exec_page($page, $regexp = null)
+	static function exec_page($page, $regexp = null)
 	{
 		global $vars, $get, $post;
 		$lines = get_source($page);
@@ -571,7 +571,7 @@ class sonots
 	 * @uses auth::check_role (PukiWiki Plus! lib/auth.php) if available
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function is_human($is_human = false, $use_session = false, $use_rolelevel = 0)
+	static function is_human($is_human = false, $use_session = false, $use_rolelevel = 0)
 	{
 		if (! $is_human) {
 			if ($use_session) {
@@ -590,7 +590,7 @@ class sonots
 		}
 		if (! $is_human) {
 			if (ROLE_GUEST < $use_rolelevel && $use_rolelevel <= ROLE_ADM_CONTENTS) {
-				$is_human = sonots::is_admin(null, $use_session, true);
+				$is_human = (new sonots())->is_admin(null, $use_session, true);
 				// In PukiWiki Official, username 'admin' is the Admin
 			}
 		}
@@ -619,7 +619,7 @@ class sonots
 	 * @return boolean
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function is_admin($pass = null, $use_session = false, $use_authlog = false)
+	static function is_admin($pass = null, $use_session = false, $use_authlog = false)
 	{
 		$is_admin = false;
 		if (! $is_admin) {
@@ -667,7 +667,7 @@ class sonots
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 * @todo refine more
 	 */
-	function make_pageeditlink_icon($page) {
+	static function make_pageeditlink_icon($page) {
 		$r_page = rawurlencode($page);
 		$link  = '<a class="anchor_super" href="' . get_script_uri() . '?cmd=edit&amp;page=' . $r_page . '">';
 		$link .= '<img class="paraedit" src="' . IMAGE_DIR . 'edit.png" alt="Edit" title="Edit" />';
@@ -688,11 +688,11 @@ class sonots
 	 * @version $Id: v 1.1 2008-06-07 11:14:46 sonots $
 	 * @todo refine more
 	 */
-	function make_pageanamelink_icon($page) {
+	static function make_pageanamelink_icon($page) {
 		global $_symbol_anchor;
 		global $pkwk_dtd;
 		
-		$id = sonots::make_pageanchor($page);
+		$id = (new sonots())->make_pageanchor($page);
 
 		// from aname
 		if (isset($pkwk_dtd) && $pkwk_dtd < PKWK_DTD_XHTML_1_1) {
@@ -718,7 +718,7 @@ class sonots
 	 * @return string anchor (no starting #)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function make_pageanchor($page)
+	static function make_pageanchor($page)
 	{
 		$anchor = 'z' . md5($page);
 		$anchor = htmlspecialchars($anchor);
@@ -737,7 +737,7 @@ class sonots
 	 * @return string $link 
 	 * @version $Id: v 1.0 2008-08-15 11:14:46 sonots $
 	 */
-	function make_toplink($alias = '', $anchor = '')
+	static function make_toplink($alias = '', $anchor = '')
 	{
 		if (function_exists('get_script_uri')) {
 			$script = get_script_uri();
@@ -782,7 +782,7 @@ class sonots
 	 * @return boolean
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function is_newpage($page)
+	static function is_newpage($page)
 	{
 		// pukiwiki trick
 		return ! _backup_file_exists($page);
@@ -800,7 +800,7 @@ class sonots
 	 * @return boolean
 	 * @version $Id: v 1.1 2008-07-16 11:14:46 sonots $
 	 */
-	function is_page_newer($page, $file, $ignore_notimestamp = false)
+	static function is_page_newer($page, $file, $ignore_notimestamp = false)
 	{
 		$filestamp = file_exists($file) ? filemtime($file) : 0;
 		$pagestamp = 0;
@@ -825,7 +825,7 @@ class sonots
 	 * @see get_filetime($page)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_filecreatetime($page)
+	static function get_filecreatetime($page)
 	{
 		if (_backup_file_exists($page)) { // PukiWiki Trick
 			// This is not a created time exactly, but the closest time
@@ -854,7 +854,7 @@ class sonots
 	 * @uses lib/html.php#make_heading
 	 * @version $Id: v 1.1 2008-06-05 11:14:46 sonots $
 	 */
-	function make_heading($line, $strip = true)
+	static function make_heading($line, $strip = true)
 	{
 		global $NotePattern;
 		$id = make_heading($line, false); // $line is modified inside
@@ -887,7 +887,7 @@ class sonots
 	 * @return string absolute path
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_fullname($name, $refer)
+	static function get_fullname($name, $refer)
 	{
 		global $defaultpage;
 		
@@ -895,7 +895,7 @@ class sonots
 		if ($name == '' || $name == './') return $refer;
 		
 		// Absolute path
-		if ($name{0} == '/') {
+		if ($name[0] == '/') {
 			$name = substr($name, 1);
 			return ($name == '') ? $defaultpage : $name;
 		}
@@ -937,7 +937,7 @@ class sonots
 	 * @return array readings
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_readings($pages = array())
+	static function get_readings($pages = array())
 	{
 		global $pagereading_enable, $pagereading_kanji2kana_converter;
 		global $pagereading_kanji2kana_encoding, $pagereading_chasen_path;
@@ -1121,10 +1121,10 @@ class sonots
 	 * @param boolean $inverse grep -v
 	 * @return void
 	 */
-	function grep_by(&$objs, $meta, $func, $pattern, $inverse = FALSE)
+	static function grep_by(&$objs, $meta, $func, $pattern, $inverse = FALSE)
 	{
-		$metas = sonots::get_members($objs, $meta);
-		$metas = sonots::grep_array($pattern, $metas, $func);
+		$metas = (new sonots())->get_members($objs, $meta);
+		$metas = (new sonots())->grep_array($pattern, $metas, $func);
 		if (! $inverse) {
 			$objs = array_intersect_key($objs, $metas);
 		} else {
@@ -1159,7 +1159,7 @@ class sonots
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 * @todo refine more
 	 */
-	function grep_array($pattern, $array, $func, $preserve_keys = true, $inverse = false)
+	static function grep_array($pattern, $array, $func, $preserve_keys = true, $inverse = false)
 	{
 		if ($inverse) $original = $array;
 		switch ($func) {
@@ -1182,7 +1182,7 @@ class sonots
 			break;
 		case 'prefix':
 			foreach ($array as $i => $val) {
-				if (strpos($val, $pattern) !== 0) 
+				if (!str_starts_with($val, $pattern)) 
 					unset($array[$i]);
 			}
 			break;
@@ -1231,7 +1231,7 @@ class sonots
 	 * @return array
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function file_head($file, $count = 1, $lock = true, $buffer = 8192)
+	static function file_head($file, $count = 1, $lock = true, $buffer = 8192)
 	{
 		$array = array();
 		
@@ -1264,7 +1264,7 @@ class sonots
 	 * @return array positions
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function r_strpos($str, $substr)
+	static function r_strpos($str, $substr)
 	{
 		$r_pos = array();
 		while(true) {
@@ -1300,7 +1300,7 @@ class sonots
 	 * @return string list html
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function display_list($items, $levels, $cssclass = '')
+	static function display_list($items, $levels, $cssclass = '')
 	{
 		/* Following codes work as the right to compose the left HTML
 		 * 
@@ -1326,7 +1326,7 @@ class sonots
 		$ul = $pdepth = 0; $html = '';
 		foreach ($items as $i => $item) {
 			$depth = $levels[$i];
-			$extra = isset($extras[$i]) ? $extras[$i] : '';
+			$extra = $extras[$i] ?? '';
 			if ($depth > $pdepth) {
 				$diff = $depth - $pdepth;
 				$html .= str_repeat('<ul><li style="list-style:none">', $diff - 1);
@@ -1364,7 +1364,7 @@ class sonots
 	 * @return boolean
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function move($oldname, $newname) {
+	static function move($oldname, $newname) {
 		if (! rename($oldname, $newname)) {
 			if (copy ($oldname, $newname)) {
 				unlink($oldname);
@@ -1388,17 +1388,18 @@ class sonots
 	 * @return array
 	 * @see preg_grep
 	 */
-	function &ereg_grep($pattern, $input, $flags = 0)
+	static function &ereg_grep($pattern, $input, $flags = 0)
 		{
+			$flag = null;
 			if ($flag & EREG_GREP_INVERT) {
 				foreach ($input as $i => $string) {
-					if (ereg($pattern, $string)) {
+					if (preg_match('#' . preg_quote($pattern, '#') . '#m', (string) $string)) {
 						unset($input[$i]); // unset rather than stack for memory saving
 					}
 				}
 			} else {
 				foreach ($input as $i => $string) {
-					if (! ereg($pattern, $string)) {
+					if (! preg_match('#' . preg_quote($pattern, '#') . '#m', (string) $string)) {
 						unset($input[$i]);
 					}
 				}
@@ -1420,7 +1421,7 @@ class sonots
 	 * @version $Id: v 1.0 2008-06-10 11:14:46 sonots $
 	 * @since  1.10
 	 */
-	function init_members(&$objects, $name, $value)
+	static function init_members(&$objects, $name, $value)
 	{
 		foreach ($objects as $i => $object) {
 			$objects[$i]->$name = $value;
@@ -1441,7 +1442,7 @@ class sonots
 	 * @return void
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function set_members(&$objects, $name, &$members)
+	static function set_members(&$objects, $name, &$members)
 	{
 		foreach ($objects as $i => $object) {
 			$objects[$i]->$name = $members[$i];
@@ -1460,7 +1461,7 @@ class sonots
 	 * @return array array of members, keys are preserved. 
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function &get_members(&$objects, $name)
+	static function &get_members(&$objects, $name)
 	{
 		$array = array();
 		foreach ($objects as $i => $object) {
@@ -1483,11 +1484,11 @@ class sonots
 	 * @version $Id: v 1.0 2008-06-10 11:14:46 sonots $
 	 * @since  1.10
 	 */
-	function map_members(&$objects, $name, $callback)
+	static function map_members(&$objects, $name, $callback)
 	{
-		$members = sonots::get_members($objects, $name);
+		$members = (new sonots())->get_members($objects, $name);
 		$members = array_map($callback, $members);
-		sonots::set_members($objects, $name, $members);
+		(new sonots())->set_members($objects, $name, $members);
 	}
 
 	/**
@@ -1506,7 +1507,7 @@ class sonots
 	 * @uses readdir()
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function &get_existfiles($dir, $ext = '', $recursive = false) 
+	static function &get_existfiles($dir, $ext = '', $recursive = false) 
 		{
 			if (($dp = @opendir($dir)) == false)
 				return false;
@@ -1548,7 +1549,7 @@ class sonots
 	 * @return string dirname
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_dirname($path)
+	static function get_dirname($path)
 	{
 		if (($pos = strrpos($path, '/')) !== false) {
 			return substr($path, 0, $pos);
@@ -1578,7 +1579,7 @@ class sonots
 	 * @return string basename
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function get_basename($path, $suffix = '')
+	static function get_basename($path, $suffix = '')
 	{
 		if (($pos = strrpos($path, '/')) !== false) {
 			$basename = substr($path, $pos + 1);
@@ -1604,7 +1605,7 @@ class sonots
 	 * @return string
 	 * @version $Id: v 1.0 2008-07-15 11:14:46 sonots $
 	 */
-	function urlencode($string, $chars = null)
+	static function urlencode($string, $chars = null)
 	{
 		if (is_null($chars)) return urlencode($string);
 		$chars = str_split($chars);
@@ -1629,7 +1630,7 @@ class sonots
 	 * @return string
 	 * @version $Id: v 1.0 2008-07-15 11:14:46 sonots $
 	 */
-	function urldecode($string, $chars = null)
+	static function urldecode($string, $chars = null)
 	{
 		if (is_null($chars)) return urldecode($string);
 		$chars = str_split($chars);
@@ -1677,16 +1678,15 @@ class sonots
 		$delims = $hashsep . $elemsep . $openarray . $closearray;
 		foreach($array as $key => $value){
 			if(is_array($value)){
-				$value = sonots::array_to_string($value, $hashsep, $elemsep, 
-												 $openarray, $closearray, $encode);
+				$value = (new sonots())->array_to_string($value, $hashsep, $elemsep, $openarray, $closearray, $encode);
 				$value = $openarray . $value . $closearray;
 			} else {
-				$value = $encode ? sonots::urlencode($value, $delims) : $value;
+				$value = $encode ? (new sonots())->urlencode($value, $delims) : $value;
 			}
 			if (is_int($key)) {
 				$string .= $elemsep . $value;
 			} else {
-				$key = $encode ? sonots::urlencode($key, $delims) : $key;
+				$key = $encode ? (new sonots())->urlencode($key, $delims) : $key;
 				$string .= $elemsep . $key . $hashsep . $value;
 			}
 		}
@@ -1736,7 +1736,7 @@ class sonots
 			($elemsep_pos === false || $hashsep_pos < $elemsep_pos) &&
 			($openarray_pos === false || $hashsep_pos < $openarray_pos)) {
 			$key = substr($string, 0, $hashsep_pos);
-			$key = $decode ? sonots::urldecode($key, $delims) : $key;
+			$key = $decode ? (new sonots())->urldecode($key, $delims) : $key;
 			$string = trim(substr($string , $hashsep_pos+1));
 		} else {
 			$key = null;
@@ -1745,11 +1745,11 @@ class sonots
 		if ($openarray_pos === false || $openarray_pos > 0) { // hash val is not an array
 			$elemsep_pos = strpos($string, $elemsep);
 			if ($elemsep_pos === false) {
-				$val = $decode ? sonots::urldecode($string, $delims) : $string;
+				$val = $decode ? (new sonots())->urldecode($string, $delims) : $string;
 				$string = "";
 			}else{
 				$val = substr($string, 0, $elemsep_pos);
-				$val = $decode ? sonots::urldecode($val, $delims) : $val;
+				$val = $decode ? (new sonots())->urldecode($val, $delims) : $val;
 				$string = substr($string, $elemsep_pos+1);
 			}
 		} elseif ($openarray_pos == 0) { // hash val is an array
@@ -1767,8 +1767,7 @@ class sonots
 					break;
 				}
 			}
-			$val = sonots::string_to_array(substr($string, 0, $index), 
-				$hashsep, $elemsep, $openarray, $closearray, $decode);
+			$val = (new sonots())->string_to_array(substr($string, 0, $index), $hashsep, $elemsep, $openarray, $closearray, $decode);
 			$string = substr($string, $index+2);
 		}
 		if (is_null($key)) {
@@ -1778,8 +1777,7 @@ class sonots
 		}
 		/// next element
 		if (strlen($string) != 0) {
-			$result = array_merge($result, sonots::string_to_array($string, 
-																   $hashsep, $elemsep, $openarray, $closearray, $decode));
+			$result = array_merge($result, (new sonots())->string_to_array($string, $hashsep, $elemsep, $openarray, $closearray, $decode));
 		}
 	
 		return $result;
@@ -1798,13 +1796,13 @@ class sonots
 	 * @return array
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function trim_array($array, $recursive = false, $trimkey = false)
+	static function trim_array($array, $recursive = false, $trimkey = false)
 	{
 		$outarray = array();
 		foreach ($array as $key => $val) {
 			unset($array[$key]); // save memory
 			if ($recursive && is_array($val)) {
-				$val = sonots::trim_array($val, $recursive, $trimkey);
+				$val = (new sonots())->trim_array($val, $recursive, $trimkey);
 			} elseif (is_string($val)) {
 				$val = trim($val);
 			}
@@ -1830,7 +1828,7 @@ class sonots
 	 * @see parse_str()
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function glue_str($queries)
+	static function glue_str($queries)
 	{
 		if (! is_array($queries))
 			return false;
@@ -1857,12 +1855,12 @@ class sonots
 	 * @see parse_url()
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function glue_url($parsed) 
+	static function glue_url($parsed) 
 	{
 		if (!is_array($parsed)) return false;
 		$uri = isset($parsed['scheme']) ? $parsed['scheme'].':'.((strtolower($parsed['scheme']) == 'mailto') ? '' : '//') : '';
 		$uri .= isset($parsed['user']) ? $parsed['user'].(isset($parsed['pass']) ? ':'.$parsed['pass'] : '').'@' : '';
-		$uri .= isset($parsed['host']) ? $parsed['host'] : '';
+		$uri .= $parsed['host'] ?? '';
 		$uri .= isset($parsed['port']) ? ':'.$parsed['port'] : '';
 		if(isset($parsed['path'])) {
 			$uri .= (substr($parsed['path'], 0, 1) == '/') ? $parsed['path'] : ('/'.$parsed['path']);
@@ -1885,7 +1883,7 @@ class sonots
 	 * @example unhtmlspecialchars.php
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function &unhtmlspecialchars($string)
+	static function &unhtmlspecialchars($string)
 		{
 			$string = str_replace('&amp;' , '&' , $string);
 			$string = str_replace('&#039;', '\'', $string);
@@ -1910,17 +1908,17 @@ class sonots
 	 * @uses glue_url()
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function realurl($base, $url)
+	static function realurl($base, $url)
 	{
 		if (! strlen($base)) return $url;
 		if (! strlen($url)) return $base;
 		
 		if (preg_match('!^[a-z]+:!i', $url)) return $url;
 		$base = parse_url($base);
-		if ($url{0} == "#") { 
+		if ($url[0] == "#") { 
 			// fragment
 			$base['fragment'] = substr($url, 1);
-			return sonots::glue_url($base);
+			return (new sonots())->glue_url($base);
 		}
 		unset($base['fragment']);
 		unset($base['query']);
@@ -1930,13 +1928,13 @@ class sonots
 						  'scheme'=>$base['scheme'],
 						  'path'=>substr($url,2),
 						  );
-			return sonots::glue_url($base);
-		} elseif ($url{0} == "/") {
+			return (new sonots())->glue_url($base);
+		} elseif ($url[0] == "/") {
 			// absolute path reference
 			$base['path'] = $url;
 		} else {
 			// relative path reference
-			$path = explode('/', $base['path']);
+			$path = explode('/', (string) $base['path']);
 			$url_path = explode('/', $url);
 			// drop file from base
 			array_pop($path);
@@ -1962,7 +1960,7 @@ class sonots
 			}
 			$base['path'] = join('/', $path);
 		}
-		return sonots::glue_url($base);
+		return (new sonots())->glue_url($base);
 	}
 
 	/**
@@ -1990,7 +1988,7 @@ class sonots
 	 * @param array &$filenames
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function sort_filenames(&$filenames)
+	static function sort_filenames(&$filenames)
 	{
 		$filenames = str_replace('/', "\0", $filenames);
 		sort($filenames, SORT_STRING);
@@ -2024,11 +2022,11 @@ class sonots
 	 * @param array &$filenames (maintain index association)
 	 * @version $Id: v 1.0 2008-08-15 11:14:46 sonots $
 	 */
-	function natcasesort_filenames(&$filenames)
+	static function natcasesort_filenames(&$filenames)
 	{
 		$dirnames = array();
 		foreach ($filenames as $i => $filename) {
-			$dirnames[$i] = explode('/', $filename);
+			$dirnames[$i] = explode('/', (string) $filename);
 		}
 		uasort($dirnames, array('sonots', 'r_strnatcasecmp'));
 		$outarray = array();
@@ -2051,9 +2049,9 @@ class sonots
 	 * @see sonots::r_cmp
 	 * @version $Id: v 1.0 2008-08-15 11:14:46 sonots $
 	 */
-	function r_strnatcasecmp($a, $b)
+	static function r_strnatcasecmp($a, $b)
 	{
-		return sonots::r_cmp($a, $b, 'strnatcasecmp');
+		return (new sonots())->r_cmp($a, $b, 'strnatcasecmp');
 	}
 
 	/*
@@ -2069,9 +2067,9 @@ class sonots
 	 * @see sonots::r_cmp
 	 * @version $Id: v 1.0 2008-08-15 11:14:46 sonots $
 	 */
-	function r_strnatcmp($a, $b)
+	static function r_strnatcmp($a, $b)
 	{
-		return sonots::r_cmp($a, $b, 'strnatcmp');
+		return (new sonots())->r_cmp($a, $b, 'strnatcmp');
 	}
 
 	/*
@@ -2103,7 +2101,7 @@ class sonots
 	 * @see usort, array_multisort
 	 * @version $Id: v 1.0 2008-08-15 11:14:46 sonots $
 	 */
-	function r_cmp($a, $b, $cmpfunc = 'strcmp')
+	static function r_cmp($a, $b, $cmpfunc = 'strcmp')
 	{
 		$keys = array_intersect(array_keys($a), array_keys($b));
 		foreach ($keys as $key) {
@@ -2112,8 +2110,7 @@ class sonots
 			$cmp = $cmpfunc($aval, $bval);
 			if ($cmp != 0) return $cmp;
 		}
-		if (count($a) == count($b)) return 0;
-		return (count($a) < count($b)) ? -1 : 1;
+		return (is_countable($a) ? count($a) : 0) <=> (is_countable($b) ? count($b) : 0);
 	}
 
 	/**
@@ -2138,7 +2135,7 @@ class sonots
 	 * @return void
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function array_asort_key(&$array, &$sorted)
+	static function array_asort_key(&$array, &$sorted)
 	{
 		$outarray = array();
 		foreach ($sorted as $key=> $tmp) {
@@ -2169,7 +2166,7 @@ class sonots
 	 * @return void
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function array_sort_key(&$array, &$sorted)
+	static function array_sort_key(&$array, &$sorted)
 	{
 		$outarray = array();
 		foreach ($sorted as $key=> $tmp) {
@@ -2220,10 +2217,11 @@ class sonots
 	 * @see mycatch
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function mythrow($errmsg)
+	static function mythrow($errmsg)
 	{
-		set_error_handler(create_function('$errno, $errstr, $errfile, $errline', 
-										  '$GLOBALS["php_errmsg"] = $errstr;'));
+		set_error_handler(function ($errno, $errstr, $errfile, $errline) {
+			$GLOBALS["php_errmsg"] = $errstr;
+		});
 		@trigger_error($errmsg, E_USER_ERROR);
 		restore_error_handler();
 	}
@@ -2238,7 +2236,7 @@ class sonots
 	 * @see mythrow
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function mycatch()
+	static function mycatch()
 	{
 		global $php_errmsg;
 		return $php_errmsg;
@@ -2255,7 +2253,7 @@ class sonots
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 * @since v 1.4
 	 */
-	function init_myerror()
+	static function init_myerror()
 	{
 		global $php_errmsg;
 		$php_errmsg = '';
@@ -2288,7 +2286,7 @@ class sonots
 	 * @version $Id: v 1.0 2008-06-07 11:14:46 sonots $
 	 * @since v 1.7
 	 */
-	function array_slice($array, $offset, $length = null, $preserve_keys = false)
+	static function array_slice($array, $offset, $length = null, $preserve_keys = false)
 	{
 		if (is_null($length)) {
 			if (! $preserve_keys) {
@@ -2320,7 +2318,7 @@ class sonots
 	 * @see php_compat_file_put_contents (better)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function file_put_contents($filename, $data, $flags = 0)
+	static function file_put_contents($filename, $data, $flags = 0)
 	{
 		$mode = ($flags & FILE_APPEND) ? 'a' : 'w';
 		$fp = fopen($filename, $mode);
@@ -2348,7 +2346,7 @@ class sonots
 	 * @see php_compat_mkdir($dir, $mode, $recurstive, $context)
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function r_mkdir($dir, $mode = 0755)
+	static function r_mkdir($dir, $mode = 0755)
 	{
 		if (is_dir($dir) || @mkdir($dir,$mode)) return true;
 		if (! r_mkdir(dirname($dir),$mode)) return false;
@@ -2367,7 +2365,7 @@ class sonots
 	 * @see php_compat_clone
 	 * @version $Id: v 1.0 2008-06-05 11:14:46 sonots $
 	 */
-	function create_clone($object) {
+	static function create_clone($object) {
 		if (version_compare(phpversion(), '5.0') < 0) {
 			return $object;
 		} else {

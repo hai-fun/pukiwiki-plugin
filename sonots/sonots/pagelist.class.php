@@ -1,6 +1,6 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots.class.php');
-require_once(dirname(__FILE__) . '/metapage.class.php');
+require_once(__DIR__ . '/sonots.class.php');
+require_once(__DIR__ . '/metapage.class.php');
 //error_reporting(E_ALL);
 
 /**
@@ -31,7 +31,7 @@ class PluginSonotsPagelist
 	 * @uses PluginSonotsMetapage
 	 * @version $Id: v 1.0 2008-06-07 07:23:17Z sonots $
 	 */
-	function PluginSonotsPagelist($pages)
+	function __construct($pages)
 	{
 		foreach ($pages as $page) {
 			$this->metapages[] = new PluginSonotsMetapage($page);
@@ -59,7 +59,7 @@ class PluginSonotsPagelist
 	 */
 	function init_metas($metakey, $value)
 	{
-		sonots::init_members($this->metapages, $metakey, $value);
+		(new sonots())->init_members($this->metapages, $metakey, $value);
 	}
 
 	/**
@@ -74,7 +74,7 @@ class PluginSonotsPagelist
 	{
 		switch ($metakey) {
 		case 'leaf': // tree can't be constructed item by item
-			$leafs = sonots::get_tree(get_existpages());
+			$leafs = (new sonots())->get_tree(get_existpages());
 			foreach ($this->metapages as $i => $val) {
 				$page = $this->metapages[$i]->page;
 				$this->metapages[$i]->leaf = $leafs[$page];
@@ -113,7 +113,7 @@ class PluginSonotsPagelist
 	 */
 	function get_metas($metakey)
 	{
-		return sonots::get_members($this->metapages, $metakey);
+		return (new sonots())->get_members($this->metapages, $metakey);
 	}
 
 	/**
@@ -126,7 +126,7 @@ class PluginSonotsPagelist
 	 */
 	function map_metas($metakey, $callback)
 	{
-		sonots::map_members($this->metapages, $metakey, $callback);
+		(new sonots())->map_members($this->metapages, $metakey, $callback);
 	}
 
 	/**
@@ -146,7 +146,7 @@ class PluginSonotsPagelist
 	function pad_dirnodes($prefix)
 	{
 		$origsize = count($this->metapages);
-		$prefix = sonots::get_dirname($prefix);
+		$prefix = (new sonots())->get_dirname($prefix);
 		$prefix = empty($prefix) ? '' : $prefix . '/';
 		$paths = $this->get_metas('relname');
 		foreach ($paths as $i => $path) {
@@ -167,7 +167,7 @@ class PluginSonotsPagelist
 					$this->metapages[] = $new;
 					$paths[]		= $currpath;
 				}
-				$currpath = sonots::get_dirname($currpath);
+				$currpath = (new sonots())->get_dirname($currpath);
 			}
 		}
 		return count($this->metapages) > $origsize;
@@ -184,8 +184,7 @@ class PluginSonotsPagelist
 	 */
 	function slice($offset, $length)
 	{
-		$this->metapages = sonots::array_slice
-			($this->metapages, $offset, $length, true);
+		$this->metapages = (new sonots())->array_slice($this->metapages, $offset, $length, true);
 	}
 
 	/**
@@ -201,7 +200,7 @@ class PluginSonotsPagelist
 		switch ($meta) {
 		case 'name':
 			$metas = $this->get_metas('relname');
-			sonots::natcasesort_filenames($metas);
+			(new sonots())->natcasesort_filenames($metas);
 			break;
 		case 'date':
 			$metas = $this->get_metas('timestamp');
@@ -209,7 +208,7 @@ class PluginSonotsPagelist
 			break;
 		case 'reading':
 			$metas = $this->get_metas('reading');
-			sonots::natcasesort_filenames($metas);
+			(new sonots())->natcasesort_filenames($metas);
 			break;
 		case 'popular':
 			$metas = $this->get_metas('popular');
@@ -230,7 +229,7 @@ class PluginSonotsPagelist
 		if ($reverse) {
 			$metas = array_reverse($metas, true);
 		}
-		sonots::array_asort_key($this->metapages, $metas);
+		(new sonots())->array_asort_key($this->metapages, $metas);
 	}
 
 	/**
@@ -265,7 +264,7 @@ class PluginSonotsPagelist
 	 */
 	function grep_by($meta, $func, $pattern, $inverse = FALSE)
 	{
-		sonots::grep_by($this->metapages, $meta, $func, $pattern, $inverse);
+		(new sonots())->grep_by($this->metapages, $meta, $func, $pattern, $inverse);
 	}
 
 	/**
@@ -280,7 +279,7 @@ class PluginSonotsPagelist
 	{
 		$items = $this->get_metas('link');
 		$levels = $this->get_metas('depth');
-		return sonots::display_list($items, $levels, $cssclass);
+		return (new sonots())->display_list($items, $levels, $cssclass);
 	}
 
 	///////////// static functions /////////
@@ -300,7 +299,7 @@ class PluginSonotsPagelist
 	function display_navi($interval, $entire, $basehref, $cssclass = '')
 	{
 		$length = $interval[1] - $interval[0] + 1;
-		list($prev, $next) = PluginSonotsPagelist::get_prevnext($interval);
+		[$prev, $next] = PluginSonotsPagelist::get_prevnext($interval);
 		
 		$prevlink = '';
 		if ($prev[1] >= $entire[0]) {

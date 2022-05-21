@@ -1,8 +1,8 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots/sonots.class.php');
-require_once(dirname(__FILE__) . '/sonots/option.class.php');
-require_once(dirname(__FILE__) . '/sonots/pagelist.class.php');
-require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
+require_once(__DIR__ . '/sonots/sonots.class.php');
+require_once(__DIR__ . '/sonots/option.class.php');
+require_once(__DIR__ . '/sonots/pagelist.class.php');
+require_once(__DIR__ . '/sonots/metapage.class.php');
 //error_reporting(E_ALL);
 
 /**
@@ -21,7 +21,7 @@ require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
 
 class PluginPopularx
 {
-	function PluginPopularx()
+	function __construct()
 	{
 		// Configure options
 		// array(type, default, config)
@@ -55,7 +55,7 @@ class PluginPopularx
 		sonots::init_myerror(); do { // try
 			$args = func_get_args(); $argline = csv_implode(',', $args);
 			$argoptions = PluginSonotsOption::parse_option_line($argline);
-			list($options, $unknowns) = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
+			[$options, $unknowns] = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
 			$options = $this->check_options($options, $unknowns, $this->conf_options);
 			if (sonots::mycatch()) break;
 
@@ -78,7 +78,7 @@ class PluginPopularx
 			global $vars;
 			$argoptions = PluginSonotsOption::parse_uri_option_line($vars);
 			$argoptions = array_intersect_key($argoptions, $this->conf_options);
-			list($options, $unknowns) = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
+			[$options, $unknowns] = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
 			$options = $this->check_options($options, array(), $this->conf_options);
 			if (sonots::mycatch()) break;
 
@@ -105,7 +105,7 @@ class PluginPopularx
 		global $vars;
 
 		// first arg
-		if (count($unknowns) > 0) {
+		if ((is_countable($unknowns) ? count($unknowns) : 0) > 0) {
 			$unknown_keys = array_diff_key($unknowns, $conf_options);
 			$key = key($unknown_keys);
 			if (in_array($key, $conf_options['popular'][2])) {
@@ -113,7 +113,7 @@ class PluginPopularx
 				unset($unknowns[$key]);
 			}
 		}
-		if (count($unknowns) > 0) {
+		if ((is_countable($unknowns) ? count($unknowns) : 0) > 0) {
 		  $line = PluginSonotsOption::glue_option_line($unknowns);
 		  sonots::mythrow('Argument(s) "' . htmlspecialchars($line) . '" are invalid');
 		  return;
@@ -164,7 +164,7 @@ class PluginPopularx
 		}
 		if (isset($options['depth'])) {
 			// do not use negative interval for depth
-			list($min, $max) = PluginSonotsOption::conv_interval($options['depth'], array(1, PHP_INT_MAX));
+			[$min, $max] = PluginSonotsOption::conv_interval($options['depth'], array(1, PHP_INT_MAX));
 			$pagelist->grep_by('depth', 'ge', $min);
 			$pagelist->grep_by('depth', 'le', $max);
 		}
@@ -186,9 +186,9 @@ class PluginPopularx
 		}
 		$pagelist->sort_by('popular', $options['reverse']);
 
-		$max = count($pagelist->metapages); // for next option
+		$max = is_countable($pagelist->metapages) ? count($pagelist->metapages) : 0; // for next option
 		if (is_array($options['num'])) {
-			list($offset, $length) = $options['num'];
+			[$offset, $length] = $options['num'];
 			$pagelist->slice($offset, $length);
 		}
 		
@@ -201,7 +201,7 @@ class PluginPopularx
 		if (empty($links)) {
 			return '<p>#' . $this->plugin . '(): no counter information is available.</p>';
 		}
-		$levels   = array_map(create_function('','return 1;'), $links);
+		$levels   = array_map(fn() => 1, $links);
 		$html = sonots::display_list($links, $levels, 'popularx');
 		
 		//// display navi. $max is needed, $argoptions is need. 

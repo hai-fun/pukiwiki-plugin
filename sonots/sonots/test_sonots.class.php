@@ -18,7 +18,7 @@ class Test_sonots extends UnitTestCase
 						   7 => 'soge',
 						   9 => 'hoge/hoge/hoge',
 						   );
-		sonots::natcasesort_filenames($filenames);
+		(new sonots())->natcasesort_filenames($filenames);
 		$truth = array (
 						2 => 'hoge/',
 						5 => 'hoge/hoge',
@@ -33,12 +33,12 @@ class Test_sonots extends UnitTestCase
 	function test_compact_list()
 	{
 		$levels = array(1,3,1,1,3,2,3);
-		$parse = sonots::compact_list($levels);
+		$parse = (new sonots())->compact_list($levels);
 		$truth = array(1,2,1,1,2,2,3);
 		$this->assertEqual($parse, $truth);
 
 		$levels = array(1,3,1,1,3,3,3);
-		$parse = sonots::compact_list($levels);
+		$parse = (new sonots())->compact_list($levels);
 		$truth = array(1,2,1,1,2,2,2);
 		$this->assertEqual($parse, $truth);
 	}
@@ -54,13 +54,13 @@ class Test_sonots extends UnitTestCase
 	function test_parse_options()
 	{
 		$args = array('str=hoge','bool');
-		$parse = sonots::parse_options($args);
+		$parse = (new sonots())->parse_options($args);
 		$truth = array('str'=>'hoge','bool'=>TRUE);
 		$this->assertEqual($parse, $truth);
 		
 		$conf_options = array('str'=>'foobar','bool'=>FALSE); // default
 		$args = array('bool','unknown=hoge');
-		$parse = sonots::parse_options($args, $conf_options);
+		$parse = (new sonots())->parse_options($args, $conf_options);
 		$truth = array('str'=>'foobar','bool'=>TRUE); // unknown is not set
 		$this->assertEqual($parse, $truth);
 	}
@@ -76,7 +76,7 @@ class Test_sonots extends UnitTestCase
 			 'test/c/cc/ccc',
 			 'test/c',
 			 );
-		$parse = sonots::get_tree($pages);
+		$parse = (new sonots())->get_tree($pages);
 		$truth = array 
 			(
 			 'test/a' => false,
@@ -101,20 +101,20 @@ class Test_sonots extends UnitTestCase
 	function test_array_slice()
 	{
 		$array = range(1,10);
-		$parse = sonots::array_slice($array, 0);
+		$parse = (new sonots())->array_slice($array, 0);
 		$truth = range(1,10);
 		$this->assertIdentical($parse,$truth);
 
-		$parse = sonots::array_slice($array, 0, 1);
+		$parse = (new sonots())->array_slice($array, 0, 1);
 		$truth = range(1, 1);
 		$this->assertIdentical($parse,$truth);
 
-		$parse = sonots::array_slice($array, 9, null);
+		$parse = (new sonots())->array_slice($array, 9, null);
 		$truth = range(10, 10);
 		$this->assertIdentical($parse,$truth);
 		$this->assertIdentical(array_keys($parse),array_keys($truth));
 
-		$parse = sonots::array_slice($array, 9, null, true);
+		$parse = (new sonots())->array_slice($array, 9, null, true);
 		$truth = array(9=>10);
 		$this->assertIdentical($parse,$truth);
 		$this->assertIdentical(array_keys($parse),array_keys($truth));
@@ -123,15 +123,15 @@ class Test_sonots extends UnitTestCase
 	function test_array_to_string()
 	{
 		$arr = array('A', 'B', 'indC' => 'C', array('D', 'E'), 'indF'=>'F');
-		$parse = sonots::array_to_string($arr);
+		$parse = (new sonots())->array_to_string($arr);
 		$truth = 'A,B,indC:C,(D,E),indF:F';
 		$this->assertEqual($parse, $truth);
 		$arr = (array)'A';
-		$parse = sonots::array_to_string($arr);
+		$parse = (new sonots())->array_to_string($arr);
 		$truth = 'A';
 		$this->assertEqual($parse, $truth);
 		$arr = array();
-		$parse = sonots::array_to_string($arr);
+		$parse = (new sonots())->array_to_string($arr);
 		$truth = '';
 		$this->assertEqual($parse, $truth);
 	}
@@ -139,11 +139,11 @@ class Test_sonots extends UnitTestCase
 	function test_string_to_array()
 	{
 		$str = 'A,B,indC:C,(D,E),indF:F';
-		$parse = sonots::string_to_array($str);
+		$parse = (new sonots())->string_to_array($str);
 		$truth = array('A', 'B', 'indC' => 'C', array('D', 'E'), 'indF'=>'F');
 		$this->assertEqual($parse, $truth);
 		$str = '';
-		$parse = sonots::string_to_array($str);
+		$parse = (new sonots())->string_to_array($str);
 		$truth = array();
 		$this->assertEqual($parse, $truth);
 	}

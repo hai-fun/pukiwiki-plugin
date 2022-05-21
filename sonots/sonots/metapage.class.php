@@ -1,6 +1,6 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots.class.php');
-require_once(dirname(__FILE__) . '/toc.class.php'); // to get title of a page
+require_once(__DIR__ . '/sonots.class.php');
+require_once(__DIR__ . '/toc.class.php'); // to get title of a page
 //error_reporting(E_ALL);
 
 /**
@@ -21,12 +21,6 @@ require_once(dirname(__FILE__) . '/toc.class.php'); // to get title of a page
  */
 class PluginSonotsMetapage
 {
-	/**
-	 * Pagename
-	 *
-	 * @var string
-	 */
-	var $page;
 	/**
 	 * Relative path from current directory
 	 *
@@ -130,9 +124,8 @@ class PluginSonotsMetapage
 	 * @access public
 	 * @param string $page
 	 */
-	function PluginSonotsMetapage($page)
+	function __construct($page)
 	{
-		$this->page = $page;
 		$this->relname = $page;
 	}
 
@@ -360,7 +353,7 @@ class PluginSonotsMetapage
 			return $page;
 		} else {
 			$currdirlen = strlen($currdir);
-			if ($currdir{$currdirlen-1} !== '/') {
+			if ($currdir[$currdirlen-1] !== '/') {
 				++$currdirlen; //Add strlen('/')
 			}
 			return substr($page, $currdirlen);
@@ -390,7 +383,7 @@ class PluginSonotsMetapage
 	 */
 	function reading($page)
 	{
-		$readings = sonots::get_readings((array)$page);
+		$readings = (new sonots())->get_readings((array)$page);
 		return current($readings);
 	}
 	/**
@@ -455,7 +448,7 @@ class PluginSonotsMetapage
 	 */
 	function newpage($page)
 	{
-		return sonots::is_newpage($page);
+		return (new sonots())->is_newpage($page);
 	}
 
 	/**
@@ -494,16 +487,9 @@ class PluginSonotsMetapage
 	function linkstr($page, $option = 'relative', $currdir = '', $usecache = true)
 	{
 		switch ($option) {
-		case 'name':
-		case 'page':
-		case 'pagename':
-		case 'absolute':
-		default:
-			$linkstr = htmlspecialchars($page);
-			break;
 		case 'base':
 		case 'basename':
-			$linkstr = htmlspecialchars(sonots::get_basename($page));
+			$linkstr = htmlspecialchars((new sonots())->get_basename($page));
 			break;
 		case 'title':
 			$title = PluginSonotsMetapage::title($page, $usecache);
@@ -526,6 +512,9 @@ class PluginSonotsMetapage
 		case 'relative':
 			$linkstr = htmlspecialchars(PluginSonotsMetapage::relname($page, $currdir));
 			break;
+		default:
+			$linkstr = htmlspecialchars($page);
+			break;
 		}
 		return $linkstr;
 	}
@@ -547,13 +536,14 @@ class PluginSonotsMetapage
 	 */
 	function link($page, $linkstr, $option)
 	{
+		$link = null;
 		switch ($option) {
 		case 'page':
-			$link = sonots::make_pagelink_nopg($page, $linkstr);
+			$link = (new sonots())->make_pagelink_nopg($page, $linkstr);
 			break;
 		case 'anchor':
-			$anchor = sonots::make_pageanchor($page);
-			$link = sonots::make_pagelink_nopg('', $linkstr, '#' . $anchor);
+			$anchor = (new sonots())->make_pageanchor($page);
+			$link = (new sonots())->make_pagelink_nopg('', $linkstr, '#' . $anchor);
 			break;
 		case 'off':
 			$link = $linkstr;
@@ -576,7 +566,7 @@ class PluginSonotsMetapage
 		static $localtime, $today, $yesterday;
 		if (! isset($localtime)) {
 			if (function_exists('set_timezone')) { // plus
-				list($zone, $zonetime) = set_timezone(DEFAULT_LANG);
+				[$zone, $zonetime] = set_timezone(DEFAULT_LANG);
 				$localtime = UTIME + $zonetime;
 				$today = gmdate('Y/m/d', $localtime);
 				$yesterday = gmdate('Y/m/d', gmmktime(0,0,0, gmdate('m',$localtime), gmdate('d',$localtime)-1, gmdate('Y',$localtime)));
@@ -590,7 +580,7 @@ class PluginSonotsMetapage
 		if (is_readable($counterfile)) {
 			$lines = file($counterfile);
 			$lines = array_map('rtrim', $lines);
-			list($total_count, $date, $today_count, $yesterday_count, $ip) = $lines;
+			[$total_count, $date, $today_count, $yesterday_count, $ip] = $lines;
 		} else {
 			return 0;
 		}

@@ -1,9 +1,9 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots/sonots.class.php');
-require_once(dirname(__FILE__) . '/sonots/option.class.php');
-require_once(dirname(__FILE__) . '/sonots/pagelist.class.php');
-require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
-require_once(dirname(__FILE__) . '/sonots/tag.class.php');
+require_once(__DIR__ . '/sonots/sonots.class.php');
+require_once(__DIR__ . '/sonots/option.class.php');
+require_once(__DIR__ . '/sonots/pagelist.class.php');
+require_once(__DIR__ . '/sonots/metapage.class.php');
+require_once(__DIR__ . '/sonots/tag.class.php');
 exist_plugin('new');		   // new option
 exist_plugin('contentsx');	 // contents option
 exist_plugin('includex');	  // include option
@@ -30,7 +30,7 @@ exist_plugin('includex');	  // include option
 
 class PluginTaglist
 {
-	function PluginTaglist()
+	function __construct()
 	{
 		// Configure options
 		// array(type, default, config)
@@ -74,7 +74,7 @@ class PluginTaglist
 		sonots::init_myerror(); do { // try
 			$args = func_get_args(); $argline = csv_implode(',', $args);
 			$argoptions = PluginSonotsOption::parse_option_line($argline);
-			list($options, $unknowns) = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
+			[$options, $unknowns] = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
 			$options = $this->check_options($options, $unknowns, $this->conf_options);
 			if (sonots::mycatch()) break;
 
@@ -108,7 +108,7 @@ class PluginTaglist
 			global $vars;
 			$argoptions = PluginSonotsOption::parse_uri_option_line($vars);
 			$argoptions = array_intersect_key($argoptions, $this->conf_options);
-			list($options, $unknowns) = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
+			[$options, $unknowns] = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
 			$options = $this->check_options($options, array(), $this->conf_options);
 			if (sonots::mycatch()) break;
 
@@ -151,19 +151,19 @@ class PluginTaglist
 		global $vars;
 
 		// first arg
-		if (! isset($options['tag']) && count($unknowns) > 0) {
+		if (! isset($options['tag']) && (is_countable($unknowns) ? count($unknowns) : 0) > 0) {
 			$unknown_keys = array_diff_key($unknowns, $conf_options);
 			$options['tag'] = $key = key($unknown_keys);
 			unset($unknowns[$key]);
 		}
-		if (count($unknowns) > 0) {
+		if ((is_countable($unknowns) ? count($unknowns) : 0) > 0) {
 		  $line = PluginSonotsOption::glue_option_line($unknowns);
 		  sonots::mythrow('Argument(s) "' . htmlspecialchars($line) . '" are invalid');
 		  return;
 		}
 
 		if (isset($options['include'])) {
-			$options['include'] = PluginIncludex::check_options($options['include']);
+			$options['include'] = (new PluginIncludex())->check_options($options['include']);
 			$options['date'] = false;	  // include does not use definitely
 			$options['new']  = false;	  // include does not use definitely
 			$options['info'] = null;
@@ -239,9 +239,9 @@ class PluginTaglist
 		}
 		$pagelist->sort_by($options['sort'], $options['reverse']);
 
-		$max = count($pagelist->metapages); // for next option
+		$max = is_countable($pagelist->metapages) ? count($pagelist->metapages) : 0; // for next option
 		if (is_array($options['num'])) {
-			list($offset, $length) = $options['num'];
+			[$offset, $length] = $options['num'];
 			$pagelist->slice($offset, $length);
 		}
 		
@@ -251,7 +251,7 @@ class PluginTaglist
 			$include = new PluginIncludex(); // just want static var
 			$includes = array();
 			foreach ($pages as $i => $page) {
-				$includes[$i] = PluginIncludex::display_include($page, $options['include'], $include->syntax);
+				$includes[$i] = (new PluginIncludex())->display_include($page, $options['include'], $include->syntax);
 			}
 			$html = implode("\n", $includes);
 		} else {
@@ -270,8 +270,8 @@ class PluginTaglist
 			if (isset($options['contents'])) {
 				$pages = $pagelist->get_metas('page');
 				foreach ($pages as $i => $page) {
-					$toc_options = PluginContentsx::check_options($page, '', $options['contents']);
-					$tocs[$i] = PluginContentsx::display_toc($page, $toc_options);
+					$toc_options = (new PluginContentsx())->check_options($page, '', $options['contents']);
+					$tocs[$i] = (new PluginContentsx())->display_toc($page, $toc_options);
 				}
 			}
 			

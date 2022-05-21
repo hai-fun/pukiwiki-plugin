@@ -7,51 +7,51 @@ class Test_PluginSonotsOption extends UnitTestCase
 {
 	function test_parse_interval()
 	{
-		$this->assertEqual(PluginSonotsOption::parse_interval('1:5', 1), array(0,5));
-		$this->assertEqual(PluginSonotsOption::parse_interval('1:5', 0), array(1,5));
-		$this->assertEqual(PluginSonotsOption::parse_interval('0:4', 0), array(0,5));
-		$this->assertEqual(PluginSonotsOption::parse_interval('0:4', 1), array(0,5)); // may change behavior
-		$this->assertEqual(PluginSonotsOption::parse_interval('2:3'), array(1,2));
-		$this->assertEqual(PluginSonotsOption::parse_interval('2:'), array(1, null));
-		$this->assertEqual(PluginSonotsOption::parse_interval(':3'), array(0,3));
-		$this->assertEqual(PluginSonotsOption::parse_interval('4'), array(3,1));
-		$this->assertEqual(PluginSonotsOption::parse_interval('-5:', 0), array(-5, null));
-		$this->assertEqual(PluginSonotsOption::parse_interval('-5:', 1), array(-5, null));
-		$this->assertEqual(PluginSonotsOption::parse_interval(':-5'), array(0, -4));
-		$this->assertEqual(PluginSonotsOption::parse_interval('1+2'), array(0,3));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('1:5', 1), array(0,5));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('1:5', 0), array(1,5));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('0:4', 0), array(0,5));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('0:4', 1), array(0,5)); // may change behavior
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('2:3'), array(1,2));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('2:'), array(1, null));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval(':3'), array(0,3));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('4'), array(3,1));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('-5:', 0), array(-5, null));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('-5:', 1), array(-5, null));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval(':-5'), array(0, -4));
+		$this->assertEqual((new PluginSonotsOption())->parse_interval('1+2'), array(0,3));
 	}
 
 	function test_conv_interval()
 	{
-		$this->assertEqual(PluginSonotsOption::conv_interval(array(0, 5), array(1, 10)), array(1, 5));
-		$this->assertEqual(PluginSonotsOption::conv_interval(array(1, null), array(1, 10)), array(2, 10));
-		$this->assertEqual(PluginSonotsOption::conv_interval(array(3, 1), array(1, 10)), array(4, 4));
-		$this->assertEqual(PluginSonotsOption::conv_interval(array(-5, null), array(1, 10)), array(6, 10));
-		$this->assertEqual(PluginSonotsOption::conv_interval(array(0, -4), array(1, 10)), array(1, 6));
+		$this->assertEqual((new PluginSonotsOption())->conv_interval(array(0, 5), array(1, 10)), array(1, 5));
+		$this->assertEqual((new PluginSonotsOption())->conv_interval(array(1, null), array(1, 10)), array(2, 10));
+		$this->assertEqual((new PluginSonotsOption())->conv_interval(array(3, 1), array(1, 10)), array(4, 4));
+		$this->assertEqual((new PluginSonotsOption())->conv_interval(array(-5, null), array(1, 10)), array(6, 10));
+		$this->assertEqual((new PluginSonotsOption())->conv_interval(array(0, -4), array(1, 10)), array(1, 6));
 	}
 
 	function test_parse_option_line()
 	{
-		$result = PluginSonotsOption::parse_option_line('prefix=Hoge/,num=1:5,contents=(num=1,headline)');
+		$result = (new PluginSonotsOption())->parse_option_line('prefix=Hoge/,num=1:5,contents=(num=1,headline)');
 		$truth = array('prefix'=>'Hoge/','num'=>'1:5','contents'=>array('num'=>'1','headline'=>true));
 		$this->assertEqual($result, $truth);
-		$result = PluginSonotsOption::parse_option_line('prefix=Hoge/,linkstr=title,contents= (num=1,headline) ');
+		$result = (new PluginSonotsOption())->parse_option_line('prefix=Hoge/,linkstr=title,contents= (num=1,headline) ');
 		$truth = array('prefix'=>'Hoge/','linkstr'=>'title','contents'=>array('num'=>'1','headline'=>true));
 		$this->assertEqual($result, $truth);
-		$result = PluginSonotsOption::parse_option_line(' prefix = Hoge/ , linkstr = title , contents = ( num = 1 , headline ) ', TRUE);
+		$result = (new PluginSonotsOption())->parse_option_line(' prefix = Hoge/ , linkstr = title , contents = ( num = 1 , headline ) ', TRUE);
 		$truth = array('prefix'=>'Hoge/','linkstr'=>'title','contents'=>array('num'=>'1','headline'=>true));
 		$this->assertEqual($result, $truth);
-		$result = PluginSonotsOption::parse_option_line('prefix=Hoge/,headline,contents=(num=1,headline)');
+		$result = (new PluginSonotsOption())->parse_option_line('prefix=Hoge/,headline,contents=(num=1,headline)');
 		$truth = array('prefix'=>'Hoge/','headline'=>TRUE,'contents'=>array('num'=>'1','headline'=>true));
 		$this->assertEqual($result, $truth);
-		$result = PluginSonotsOption::parse_option_line(',headline,contents=(num=1,headline)');
+		$result = (new PluginSonotsOption())->parse_option_line(',headline,contents=(num=1,headline)');
 		$truth = array(''=>TRUE,'headline'=>TRUE,'contents'=>array('num'=>'1','headline'=>true));
 		$this->assertEqual($result, $truth);
 
-		$result = PluginSonotsOption::parse_option_line('');
+		$result = (new PluginSonotsOption())->parse_option_line('');
 		$truth = array ();
 		$this->assertEqual($result, $truth);
-		$result = PluginSonotsOption::parse_option_line(',num=1:2');
+		$result = (new PluginSonotsOption())->parse_option_line(',num=1:2');
 		$truth = array(
 					   '' => true,
 					   'num' => '1:2',
@@ -62,7 +62,7 @@ class Test_PluginSonotsOption extends UnitTestCase
 	function test_glue_option_line()
 	{
 		$options = array('prefix'=>'Hoge/','num'=>'1:5','contents'=>array('num'=>'1','headline'=>true));
-		$result = PluginSonotsOption::glue_option_line($options);
+		$result = (new PluginSonotsOption())->glue_option_line($options);
 		$truth = 'prefix=Hoge/,num=1:5,contents=(num=1,headline)';
 		$this->assertEqual($result, $truth);
 	}
@@ -78,7 +78,7 @@ class Test_PluginSonotsOption extends UnitTestCase
 			 'sort'	  => array('enum', 'name', array('name', 'reading', 'date')),
 			 );
 		$options = array('Hoge/'=>true,'filter'=>'AAA');
-		list($options, $unknowns) = PluginSonotsOption::evaluate_options($options, $conf_options);
+		[$options, $unknowns] = (new PluginSonotsOption())->evaluate_options($options, $conf_options);
 		$truth = array('hierarchy'=>true,'num'=>null,'filter'=>'AAA','sort'=>'name');
 		$this->assertIdentical($options, $truth);
 		$truth = array('Hoge/'=>true);
@@ -110,7 +110,7 @@ class Test_PluginSonotsOption extends UnitTestCase
 			 'popular'   => array('enum', null, array('total', 'today', 'yesterday', 'recent')), // alpha
 			 );
 		$options = array('prefix'=>'Hoge/','num'=>'1:5','contents'=>array('num'=>'1','firsthead'));
-		list($result, $unknowns) = PluginSonotsOption::evaluate_options($options, $conf_options);
+		[$result, $unknowns] = (new PluginSonotsOption())->evaluate_options($options, $conf_options);
 		$truth = array (
 						'hierarchy' => true,
 						'non_list' => true,
@@ -146,7 +146,7 @@ class Test_PluginSonotsOption extends UnitTestCase
 		$this->assertEqual($result, $truth);
 		$options[''] = TRUE;
 		$options['cmd'] = 'read';
-		list($result, $unknowns) = PluginSonotsOption::evaluate_options($options, $conf_options);
+		[$result, $unknowns] = (new PluginSonotsOption())->evaluate_options($options, $conf_options);
 		$this->assertEqual($result, $truth);
 		$this->assertIdentical($unknowns, array(''=>TRUE,'cmd'=>'read'));
 
@@ -169,7 +169,7 @@ class Test_PluginSonotsOption extends UnitTestCase
 			 )),
 		);
 		$options = array('num'=>'1:5');
-		list($result, $unknowns) = PluginSonotsOption::evaluate_options($options, $conf_options);
+		[$result, $unknowns] = (new PluginSonotsOption())->evaluate_options($options, $conf_options);
 		$truth = array (
 						'num' =>
 						array (
@@ -187,7 +187,7 @@ class Test_PluginSonotsOption extends UnitTestCase
 						);
 		$this->assertIdentical($result, $truth);
 		$options = array('num'=>'1:5','section'=>array('num'=>'1'));
-		list($result, $unknowns) = PluginSonotsOption::evaluate_options($options, $conf_options);
+		[$result, $unknowns] = (new PluginSonotsOption())->evaluate_options($options, $conf_options);
 		$truth['section'] = 
 						array (
 							   'num' =>

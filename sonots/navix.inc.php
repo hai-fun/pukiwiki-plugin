@@ -1,9 +1,9 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots/sonots.class.php');
-require_once(dirname(__FILE__) . '/sonots/option.class.php');
-require_once(dirname(__FILE__) . '/sonots/pagelist.class.php');
-require_once(dirname(__FILE__) . '/sonots/metapage.class.php');
-require_once(dirname(__FILE__) . '/sonots/tag.class.php');
+require_once(__DIR__ . '/sonots/sonots.class.php');
+require_once(__DIR__ . '/sonots/option.class.php');
+require_once(__DIR__ . '/sonots/pagelist.class.php');
+require_once(__DIR__ . '/sonots/metapage.class.php');
+require_once(__DIR__ . '/sonots/tag.class.php');
 //error_reporting(E_ALL);
 
 /**
@@ -23,7 +23,7 @@ require_once(dirname(__FILE__) . '/sonots/tag.class.php');
 
 class PluginNavix
 {
-	function PluginNavix()
+	function __construct()
 	{
 		// configure message
 		static $linkstr = array();if (empty($linkstr)) {
@@ -99,7 +99,7 @@ class PluginNavix
 		sonots::init_myerror(); do { // try
 			$args = func_get_args(); $argline = csv_implode(',', $args);
 			$argoptions = PluginSonotsOption::parse_option_line($argline);
-			list($options, $unknowns) = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
+			[$options, $unknowns] = PluginSonotsOption::evaluate_options($argoptions, $this->conf_options);
 			$options = $this->check_options($options, $unknowns, $this->conf_options);
 			if (sonots::mycatch()) break;
 
@@ -153,12 +153,12 @@ class PluginNavix
 		global $vars;
 
 		// first arg
-		if (! isset($options['home']) && count($unknowns) > 0) {
+		if (! isset($options['home']) && (is_countable($unknowns) ? count($unknowns) : 0) > 0) {
 			$unknown_keys = array_diff_key($unknowns, $conf_options);
 			$options['home'] = $key = key($unknown_keys); // compat with ls, ls2
 			unset($unknowns[$key]);
 		}
-		if (count($unknowns) > 0) {
+		if ((is_countable($unknowns) ? count($unknowns) : 0) > 0) {
 		  $line = PluginSonotsOption::glue_option_line($unknowns);
 		  sonots::mythrow('Argument(s) "' . htmlspecialchars($line) . '" are invalid');
 		  return;
@@ -227,7 +227,7 @@ class PluginNavix
 		}
 		if (isset($options['depth'])) {
 			// do not use negative interval for depth
-			list($min, $max) = PluginSonotsOption::conv_interval($options['depth'], array(1, PHP_INT_MAX));
+			[$min, $max] = PluginSonotsOption::conv_interval($options['depth'], array(1, PHP_INT_MAX));
 			$pagelist->grep_by('depth', 'ge', $min);
 			$pagelist->grep_by('depth', 'le', $max);
 		}
@@ -259,7 +259,7 @@ class PluginNavix
 		$pagelist->sort_by($options['sort'], $options['reverse']);
 
 		if (is_array($options['num'])) {
-			list($offset, $length) = $options['num'];
+			[$offset, $length] = $options['num'];
 			$pagelist->slice($offset, $length);
 		}
 		return $pagelist;
@@ -319,7 +319,7 @@ class PluginNavix
 		$linkstr = $this->linkstr;
 		$css	 = $this->css;
 		$footer  = ($look == 'footer');
-		list($home, $up, $prev, $current, $next) = $navipages;
+		[$home, $up, $prev, $current, $next] = $navipages;
 
 		// get link
 		$link = array();

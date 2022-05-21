@@ -1,6 +1,6 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots/sonots.class.php');
-require_once(dirname(__FILE__) . '/sonots/tag.class.php');
+require_once(__DIR__ . '/sonots/sonots.class.php');
+require_once(__DIR__ . '/sonots/tag.class.php');
 if (! defined('INIT_DIR')) // if not Plus! 
 	if (file_exists(DATA_HOME . 'init/tag.ini.php')) 
 		include_once(DATA_HOME . 'init/tag.ini.php');
@@ -21,7 +21,7 @@ if (! defined('INIT_DIR')) // if not Plus!
  */
 class PluginTag
 {
-	function PluginTag()
+	function __construct()
 	{
 		static $conf = array();
 		if (empty($conf)) {
@@ -44,7 +44,7 @@ class PluginTag
 			return 'tag(): no argument(s). ';
 		}
 		global $vars, $defaultpage; 
-		$page = isset($vars['page']) ? $vars['page'] : $defaultpage;
+		$page = $vars['page'] ?? $defaultpage;
 		$args = func_get_args(); 
 		array_pop($args);  // drop {}
 		$tags = $args;

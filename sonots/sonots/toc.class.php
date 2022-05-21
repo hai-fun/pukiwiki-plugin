@@ -1,6 +1,6 @@
 <?php
-require_once(dirname(__FILE__) . '/sonots.class.php');
-require_once(dirname(__FILE__) . '/metapage.class.php');
+require_once(__DIR__ . '/sonots.class.php');
+require_once(__DIR__ . '/metapage.class.php');
 //error_reporting(E_ALL);
 
 /**
@@ -116,7 +116,7 @@ class PluginSonotsToc
 	 * @param boolean $usecache
 	 * @uses init
 	 */
-	function PluginSonotsToc($page = '', $usecache = true)
+	function __construct($page = '', $usecache = true)
 	{
 		static $syntax = array();
 		if (empty($syntax)) {
@@ -126,7 +126,7 @@ class PluginSonotsToc
 				 'title'	  => '/^TITLE:(.+)/',
 				 'contents'   => '/^#contents/',
 				 'readmore'   => '/^#readmore/',
-				 'cachefile'  => create_function('$x', 'return CACHE_DIR . encode($x) . ".toc";'),
+				 'cachefile'  => fn($x) => CACHE_DIR . encode($x) . ".toc",
 			);
 		}
 		$this->syntax = &$syntax; // php4 static trick
@@ -143,6 +143,7 @@ class PluginSonotsToc
 	 */
 	function init($page, $usecache)
 	{
+		$toc = null;
 		if (! $usecache) {
 			$this->construct_toc($page);
 			return;
@@ -152,25 +153,26 @@ class PluginSonotsToc
 		// check whether renewing is required or not
 		// renew cache if one of including pages are newer than cache
 		$renew = false; 
-		if (sonots::is_page_newer($page, $cachefile, true)) {
+		if ((new sonots())->is_page_newer($page, $cachefile, true)) {
 			$renew = true;
 		} else { // check all including pages too
 			// including pages are obtained from cache
 			$toc = unserialize(file_get_contents($cachefile));
+			if (!isset($toc->includes)) return;
 			$pages = array_keys($toc->includes);
 			for ($i = 1; $i < count($pages); ++$i) {// first is the current page, already done
-				if (sonots::is_page_newer($pages[$i], $cachefile)) {
+				if ((new sonots())->is_page_newer($pages[$i], $cachefile)) {
 					$renew = true; break;
 				}
 			}
 		}
 		if ($renew) { // recreate and write
 			$this->construct_toc($page);
-			$contents = serialize($this);
+			$contents = serialize($this->all);
 			file_put_contents($cachefile, $contents);
 		} else { // read from cache
 			// cache is already read
-			PluginSonotsToc::shallow_copy($toc, $this);
+			(new PluginSonotsToc())->shallow_copy($toc, $this);
 			$this->usecache = $usecache;
 		}
 	}
@@ -184,7 +186,7 @@ class PluginSonotsToc
 	 * @param PluginSonotsToc &$target
 	 * @return void
 	 */
-	function shallow_copy($source, &$target)
+	static function shallow_copy($source, &$target)
 	{
 		$vars = get_object_vars($source);
 		unset($vars['usecache']);
@@ -250,7 +252,7 @@ class PluginSonotsToc
 	 */
 	function get_includepages()
 	{
-		return sonots::get_members($this->includes, 'page');
+		return (new sonots())->get_members($this->includes, 'page');
 	}
 
 	/**
@@ -274,8 +276,7 @@ class PluginSonotsToc
 	 */
 	function get_readmore()
 	{
-		return isset($this->extra['readmore']) ?
-			$this->extra['readmore'] : null;
+		return $this->extra['readmore'] ?? null;
 	}
 
 	/**
@@ -286,8 +287,7 @@ class PluginSonotsToc
 	 */
 	function get_fromhere()
 	{
-		return isset($this->extra['fromhere']) ?
-			$this->extra['fromhere'] : null;
+		return $this->extra['fromhere'] ?? null;
 	}
 
 	/**
@@ -301,27 +301,20 @@ class PluginSonotsToc
 	 * @param boolean $optinclude show toc of including pages too or not
 	 * @return string list html
 	 */
-	function display_toc(&$headlines, $cssclass = '', $optlink = 'anchor')
+	static function display_toc(&$headlines, $cssclass = '', $optlink = 'anchor')
 	{
 		$links = $levels = array();
 		foreach ($headlines as $i => $headline) {
 			$linkstr = strip_htmltag(make_link($headline->string));
-			switch ($optlink) {
-			case 'page':
-				$link = sonots::make_pagelink_nopg($headline->page, $linkstr, '#' . $headline->anchor);
-				break;
-			case 'off':
-				$link = $linkstr;
-				break;
-			case 'anchor':
-			default:
-				$link = sonots::make_pagelink_nopg('', $linkstr, '#' . $headline->anchor);
-				break;
-			}
+			$link = match ($optlink) {
+				'page' => (new sonots())->make_pagelink_nopg($headline->page, $linkstr, '#' . $headline->anchor),
+				'off' => $linkstr,
+				default => (new sonots())->make_pagelink_nopg('', $linkstr, '#' . $headline->anchor),
+			};
 			$links[$i] = $link;
 			$levels[$i] = $headline->depth;
 		}
-		return sonots::display_list($links, $levels, $cssclass);
+		return (new sonots())->display_list($links, $levels, $cssclass);
 	}
 
 	/**
@@ -331,15 +324,15 @@ class PluginSonotsToc
 	 * @access static
 	 * @param array &$headlines
 	 */
-	function compact_depth(&$headlines)
+	static function compact_depth(&$headlines)
 	{
-		$pages = sonots::get_members($headlines, 'page');
+		$pages = (new sonots())->get_members($headlines, 'page');
 		// perform compact separately for each page
 		foreach (array_unique($pages) as $page) {
-			$keys = sonots::grep_array($page, $pages, 'eq');
+			$keys = (new sonots())->grep_array($page, $pages, 'eq');
 			$page_headlines = array_intersect_key($headlines, $keys);
-			$depths = sonots::get_members($page_headlines, 'depth');
-			$depths = sonots::compact_list($depths);
+			$depths = (new sonots())->get_members($page_headlines, 'depth');
+			$depths = (new sonots())->compact_list($depths);
 			foreach ($depths as $key => $depth) {
 				$headlines[$key]->depth = $depth;
 			}
@@ -360,8 +353,8 @@ class PluginSonotsToc
 	{
 		if (! in_array($this->page, $visited)) $visited[] = $this->page;
 		// combine headlines and includes lines
-		$hlines = array_map(create_function('', 'return "h";'), $this->headlines);
-		$ilines = array_map(create_function('', 'return "i";'), $this->includes);
+		$hlines = array_map(fn() => "h", $this->headlines);
+		$ilines = array_map(fn() => "i", $this->includes);
 		$lines = $hlines + $ilines;
 		ksort($lines);
 
@@ -393,8 +386,8 @@ class PluginSonotsToc
 	 */
 	function shrink_includes()
 	{
-		$pages = sonots::get_members($this->headlines, 'page');
-		$keys = sonots::grep_array($this->page, $pages, 'eq');
+		$pages = (new sonots())->get_members($this->headlines, 'page');
+		$keys = (new sonots())->grep_array($this->page, $pages, 'eq');
 		$this->headlines = array_intersect_key($this->headlines, $keys);
 	}
 
@@ -409,30 +402,30 @@ class PluginSonotsToc
 		$lines = get_source($page);
 		$title = null;
 		$headlines = $includes = $extra = array();
-		sonots::remove_multilineplugin_lines($lines);
+		(new sonots())->remove_multilineplugin_lines($lines);
 		foreach ($lines as $linenum => $line) {
 			if (! isset($extra['fromhere'])) {
-				if (preg_match($this->syntax['contents'], $line, $matches)) {
+				if (preg_match($this->syntax['contents'], (string) $line, $matches)) {
 					$extra['fromhere'] = $linenum;
 					continue;
 				}
 			}
 			if (! isset($extra['readmore'])) {
-				if (preg_match($this->syntax['readmore'], $line, $matches)) {
+				if (preg_match($this->syntax['readmore'], (string) $line, $matches)) {
 					$extra['readmore'] = $linenum;
 					continue;
 				}
 			}
 			
-			if (preg_match($this->syntax['headline'], $line, $matches)) {
-				$depth	= strlen($matches[1]);
-				list($string, $anchor) = sonots::make_heading($line);
+			if (preg_match($this->syntax['headline'], (string) $line, $matches)) {
+				$depth	= strlen((string) $matches[1]);
+				[$string, $anchor] = (new sonots())->make_heading($line);
 				$headlines[$linenum] 
 					= new PluginSonotsHeadline($page, $linenum, $depth, $string, $anchor);
 				continue;
 			}
 
-			if (preg_match($this->syntax['include'], $line, $matches)) {
+			if (preg_match($this->syntax['include'], (string) $line, $matches)) {
 				$inclargs = csv_explode(',', $matches[1]);
 				$inclpage = array_shift($inclargs);
 				$inclpage = get_fullname($inclpage, $page);
@@ -442,7 +435,7 @@ class PluginSonotsToc
 				continue;
 			}
 			
-			if (preg_match($this->syntax['title'], $line, $matches)) {
+			if (preg_match($this->syntax['title'], (string) $line, $matches)) {
 				$title = $matches[1];
 				continue;
 			}
@@ -467,15 +460,8 @@ class PluginSonotsToc
  */
 class PluginSonotsIncludeline
 {
-	var $linenum;
-	var $page;
-	var $args;
-
-	function PluginSonotsIncludeline($linenum, $page, $args)
+	function __construct($linenum, $page, $args)
 	{
-		$this->linenum = $linenum;
-		$this->page	= $page;
-		$this->args	= $args;
 	}
 
 	/**
@@ -487,9 +473,9 @@ class PluginSonotsIncludeline
 	{
 		$linenum = $this->linenum;
 		$depth   = 0;
-		$options = sonots::parse_options($this->args, array('titlestr'=>'title'));
+		$options = (new sonots())->parse_options($this->args, array('titlestr'=>'title'));
 		$string  = PluginSonotsMetapage::linkstr($this->page, $options['titlestr'], $usecache);
-		$anchor  = sonots::make_pageanchor($this->page);
+		$anchor  = (new sonots())->make_pageanchor($this->page);
 		return new PluginSonotsHeadline($this->page, $linenum, $depth, $string, $anchor);
 	}
 }
@@ -504,18 +490,8 @@ class PluginSonotsIncludeline
  */
 class PluginSonotsHeadline
 {
-	var $page; // to differentiate included pages
-	var $linenum;
-	var $depth;
-	var $string;
-	var $anchor;
-	function PluginSonotsHeadline($page, $linenum, $depth, $string, $anchor = '')
+	function __construct($page, $linenum, $depth, $string, $anchor = '')
 	{
-		$this->page	 = $page;
-		$this->linenum  = $linenum;
-		$this->depth	= $depth;
-		$this->string   = $string;
-		$this->anchor   = $anchor;
 	}
 }
 
