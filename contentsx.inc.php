@@ -9,6 +9,7 @@
  * @package    plugin
  */
  // v1.12 PHP8.0対応 2021-12-15 byはいふん
+ // v1.13 PHP7/8修正 2022-05-21 byはいふん
 
 class PluginContentsx
 {
@@ -430,9 +431,10 @@ class PluginContentsx
 		$metalines = array();
 		foreach ($this->metalines as $metaline) {
 			$depth = $metaline['depth'];
-			if (in_array($depth, $this->options['depth'][1])) {
-				$metalines[] = $metaline;
-			}
+			if (isset($this->options['depth'][1]))
+				if (in_array($depth, $this->options['depth'][1])) {
+					$metalines[] = $metaline;
+				}
 		}
 		$this->metalines = $metalines;
 	}
@@ -445,7 +447,7 @@ class PluginContentsx
 		$metalines = array();
 		foreach ($this->metalines as $metaline) {
 			$headline = $metaline['headline'];
-			if (ereg($this->options['filter'][1], $headline)) {
+			if (preg_match('/' . $this->options['filter'][1] . '/', $headline)) {
 				$metalines[] = $metaline;
 			}
 		}
@@ -460,7 +462,7 @@ class PluginContentsx
 		$metalines = array();
 		foreach ($this->metalines as $metaline) {
 			$headline = $metaline['headline'];
-			if (!ereg($this->options['except'][1], $headline)) {
+			if (!preg_match('/' . $this->options['except'][1] . '/', $headline)) {
 				$metalines[] = $metaline;
 			}
 		}

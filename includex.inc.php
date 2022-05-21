@@ -8,7 +8,8 @@
  * @version    $Id: includex.inc.php,v 1.5 2007-06-05 07:23:17Z sonots $
  * @package    plugin
  */
- // v1.51 PHP8.0対応 2021-12-15 byはいふん
+ // v1.6 PHP8.0対応 2021-12-15 byはいふん
+ // v1.7 PHP7/8修正 2022-05-21 byはいふん
 
 class PluginIncludex
 {
@@ -287,7 +288,7 @@ class PluginIncludex
 		$size = sizeof($this->headlines);
 		$this->section_options['num'][1] = $parser->parse_numoption($this->section_options['num'][1], 0, $size);
 		$lines = array();
-		if (in_array(0, $this->section_options['num'][1])) {
+		if ($this->section_options['num'][0] === 0) {
 			$linenum = $this->headlines[0]['linenum'];
 			$lines = array_merge($lines, array_splice($this->lines, 0, $linenum));
 		}
@@ -332,7 +333,7 @@ class PluginIncludex
 		}
 		$lines = array();
 		foreach ($this->lines as $line) {
-			if (ereg($this->options['filter'][1], $line)) {
+			if (preg_match('/' . $this->options['filter'][1] . '/', $line)) {
 				$lines[] = $line;
 			}
 		}
@@ -346,7 +347,7 @@ class PluginIncludex
 		}
 		$lines = array();
 		foreach ($this->lines as $line) {
-			if (! ereg($this->options['except'][1], $line)) {
+			if (! preg_match('/' . $this->options['except'][1] . '/', $line)) {
 				$lines[] = $line;
 			}
 		}
