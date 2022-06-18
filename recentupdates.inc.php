@@ -196,7 +196,7 @@ function plugin_recentupdates_convert()
 	$date = $items = '';
 	foreach ($lines as $line) {
 		list($time, $page, $diff_html, $author_tmp) = explode("\t", rtrim($line));
-		$_date = date($date_format, $time) . ' (' . $weeklabels[date('w', $time)] . ') ';
+		$_date = get_date($date_format, $time) . ' (' . $weeklabels[get_date('w', $time)] . ') ';
 		if ($date != $_date) {
 			// End of the day
 			if ($date != '') $items .= '</ul>' . "\n";
@@ -227,7 +227,7 @@ function plugin_recentupdates_convert()
 		$s_page = htmlsc($page);
 		$attrs = get_page_link_a_attrs($page);
 		$items .= ' <li>
-			' . date($time_format, $time) . ' - ' . '[ <a href="' . $script . '?cmd=diff&page=' . $s_page . '">' . $_LANG['skin']['diff'] . '</a>' . ' | <a href="' . $script . '?cmd=backup&page=' . $s_page . '">' . $_LANG['skin']['backup'] . '</a> ] ' . 
+			' . get_date($time_format, $time) . ' - ' . '[ <a href="' . $script . '?cmd=diff&page=' . $s_page . '">' . $_LANG['skin']['diff'] . '</a>' . ' | <a href="' . $script . '?cmd=backup&page=' . $s_page . '">' . $_LANG['skin']['backup'] . '</a> ] ' . 
 			'<a href="' . get_page_uri($page) . '" class="' .
 			$attrs['class'] . '" data-mtime="' . $attrs['data_mtime'] .
 			'">' . $s_page . '</a>' .
