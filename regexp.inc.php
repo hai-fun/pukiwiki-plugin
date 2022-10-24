@@ -297,7 +297,7 @@ class PluginRegexpView
 	}
 	
 	function PluginRegexpView(&$model) {
-		$this->__construct(&$model);
+		$this->__construct($model);
 	}
 
 	function login()
