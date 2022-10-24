@@ -9,6 +9,7 @@
  * @package    plugin
  */
  // v1.41 PHP8.0対応 2021-12-15 byはいふん
+ // v1.42 Fixed construct argument 2022-10-24 byはいふん
 
 class PluginRegexp
 {
@@ -295,8 +296,8 @@ class PluginRegexpView
 		$this->conf	= &$model->conf;
 	}
 	
-	function PluginRegexpView() {
-		$this->__construct();
+	function PluginRegexpView(&$model) {
+		$this->__construct(&$model);
 	}
 
 	function login()
