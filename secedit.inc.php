@@ -5,8 +5,6 @@
  * @version    $Id: secedit.inc.php 422 2008-11-19 10:33:42Z lunt $
  */
 
-// 423 PHP8対応 2022-10-25 haifun
-
 /**
  * Define heading style
  *
@@ -47,7 +45,7 @@ function plugin_secedit_action()
 	}
 
 	$action = 'Plugin_Secedit_' . $action;
-	$obj    = new $action();
+	$obj    = &new $action();
 
 	return $obj->process();
 }
@@ -77,7 +75,7 @@ class Plugin_Secedit
 		global $vars, $post;
 
 		$this->page        = isset($vars['page']) ? $vars['page'] : '';
-		$this->s_page      = htmlsc($this->page);
+		$this->s_page      = htmlspecialchars($this->page);
 		$this->id          = isset($vars['id']) ? $vars['id'] : 0;
 		$this->anchor      = isset($vars['anchor']) ? $vars['anchor'] : '';
 		$this->level       = isset($vars['level']) ? true : false;
@@ -171,16 +169,16 @@ class Plugin_Secedit_Edit extends Plugin_Secedit
 
 		$source = get_source($this->page, true, true);
 
-		$this->sections = new Plugin_Secedit_Sections($source);
+		$this->sections = &new Plugin_Secedit_Sections($source);
 
 		if ($this->anchor) {
 			$id = $this->sections->anchor2id($this->anchor);
 			$this->id = $id ? $id : $this->id;
 		}
 
-		$this->s_postdata = htmlsc($this->sections->get_section($this->id, $this->level));
-		$this->s_original = htmlsc($source);
-		$this->s_digest   = htmlsc(md5($source));
+		$this->s_postdata = htmlspecialchars($this->sections->get_section($this->id, $this->level));
+		$this->s_original = htmlspecialchars($source);
+		$this->s_digest   = htmlspecialchars(md5($source));
 	}
 
 	function check()
@@ -188,7 +186,7 @@ class Plugin_Secedit_Edit extends Plugin_Secedit
 		parent::check();
 
 		if ($this->anchor && $this->id && ! $this->sections->is_unique_anchor($this->anchor)) {
-			die_message('The anchor ' . htmlsc($this->anchor) . ' is nonunique.');
+			die_message('The anchor ' . htmlspecialchars($this->anchor) . ' is nonunique.');
 		}
 	}
 
@@ -209,10 +207,10 @@ class Plugin_Secedit_Preview extends Plugin_Secedit
 	{
 		parent::init();
 
-		$this->sections   = new Plugin_Secedit_Sections($this->original);
-		$this->s_postdata = htmlsc($this->postdata);
-		$this->s_original = htmlsc($this->original);
-		$this->s_digest   = htmlsc($this->digest);
+		$this->sections   = &new Plugin_Secedit_Sections($this->original);
+		$this->s_postdata = htmlspecialchars($this->postdata);
+		$this->s_original = htmlspecialchars($this->original);
+		$this->s_digest   = htmlspecialchars($this->digest);
 	}
 
 	function check()
@@ -265,8 +263,8 @@ class Plugin_Secedit_Write extends Plugin_Secedit_Preview
 
 		if ($this->digest !== $current_md5) {
 			list($postdata, $auto) = do_update_diff($current_src, $postdata, $this->original);
-			$this->s_postdata = htmlsc($postdata);
-			$this->s_digest   = htmlsc($current_md5);
+			$this->s_postdata = htmlspecialchars($postdata);
+			$this->s_digest   = htmlspecialchars($current_md5);
 			$body  = ($auto ? $_msg_collided_auto : $_msg_collided) . "\n";
 			$body .= $do_update_diff_table . edit_form($this->page, $postdata, $current_md5, false);
 			return array(
@@ -317,14 +315,9 @@ class Plugin_Secedit_Sections
 {
 	var $sections;
 
-	function __construct($text)
-	{
-		$this->sections = $this->_parse($text);
-	}
-	
 	function Plugin_Secedit_Sections($text)
 	{
-		$this->__construct($text);
+		$this->sections = $this->_parse($text);
 	}
 
 	function get_source()
