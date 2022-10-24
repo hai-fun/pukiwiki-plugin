@@ -5,44 +5,50 @@
 // $Id: region.inc.php,v 1.2 2005/01/22 15:50:00 xxxxx Exp $
 //
 
+// v1.21 PHP8.0å¯¾å¿œ 2021-12-15 byã¯ã„ãµã‚“
+// v1.22 Fixed construct call
+
 function plugin_region_convert()
 {
 	static $builder = 0;
 	if( $builder==0 ) $builder = new RegionPluginHTMLBuilder();
 
-	// static ¤ÇÀë¸À¤·¤Æ¤·¤Ş¤Ã¤¿¤Î¤Ç£²²óÌÜ¸Æ¤Ğ¤ì¤¿¤È¤­¡¢Á°¤Î¾ğÊó¤¬»Ä¤Ã¤Æ¤¤¤ÆÊÑ¤ÊÆ°ºî¤Ë¤Ê¤ë¤Î¤Ç½é´ü²½¡£
+	// static ã§å®£è¨€ã—ã¦ã—ã¾ã£ãŸã®ã§ï¼’å›ç›®å‘¼ã°ã‚ŒãŸã¨ãã€å‰ã®æƒ…å ±ãŒæ®‹ã£ã¦ã„ã¦å¤‰ãªå‹•ä½œã«ãªã‚‹ã®ã§åˆæœŸåŒ–ã€‚
 	$builder->setDefaultSettings();
 
-	// °ú¿ô¤¬»ØÄê¤µ¤ì¤Æ¤¤¤ë¤è¤¦¤Ê¤Î¤Ç²òÀÏ
+	// å¼•æ•°ãŒæŒ‡å®šã•ã‚Œã¦ã„ã‚‹ã‚ˆã†ãªã®ã§è§£æ
 	if (func_num_args() >= 1){
 		$args = func_get_args();
 		$builder->setDescription( array_shift($args) );
 		foreach( $args as $value ){
-			// opened ¤¬»ØÄê¤µ¤ì¤¿¤é½é´üÉ½¼¨¤Ï³«¤¤¤¿¾õÂÖ¤ËÀßÄê
+			// opened ãŒæŒ‡å®šã•ã‚ŒãŸã‚‰åˆæœŸè¡¨ç¤ºã¯é–‹ã„ãŸçŠ¶æ…‹ã«è¨­å®š
 			if( preg_match("/^open/i", $value) ){
 				$builder->setOpened();
-			// closed ¤¬»ØÄê¤µ¤ì¤¿¤é½é´üÉ½¼¨¤ÏÊÄ¤¸¤¿¾õÂÖ¤ËÀßÄê¡£
+			// closed ãŒæŒ‡å®šã•ã‚ŒãŸã‚‰åˆæœŸè¡¨ç¤ºã¯é–‰ã˜ãŸçŠ¶æ…‹ã«è¨­å®šã€‚
 			}elseif( preg_match("/^close/i", $value) ){
 				$builder->setClosed();
 			}
 		}
 	}
-	// £È£Ô£Í£ÌÊÖµÑ
+	// ï¼¨ï¼´ï¼­ï¼¬è¿”å´
 	return $builder->build();
 }
 
 
-// ¥¯¥é¥¹¤Îºî¤êÊı¢Íhttp://php.s3.to/man/language.oop.object-comparison-php4.html
+// ã‚¯ãƒ©ã‚¹ã®ä½œã‚Šæ–¹â‡’http://php.s3.to/man/language.oop.object-comparison-php4.html
 class RegionPluginHTMLBuilder
 {
 	var $description;
 	var $isopened;
 	var $scriptVarName;
-	//¢­ build¥á¥½¥Ã¥É¤ò¸Æ¤ó¤À²ó¿ô¤ò¥«¥¦¥ó¥È¤¹¤ë¡£
-	//¢­ ¤³¤ì¤Ï¡¢¤³¤Î¥×¥é¥°¥¤¥ó¤¬À¸À®¤¹¤ëJavaScriptÆâ¤Ç¥æ¥Ë¡¼¥¯¤ÊÊÑ¿ôÌ¾¡ÊÈï¤é¤Ê¤¤ÊÑ¿ôÌ¾¡Ë¤òÀ¸À®¤¹¤ë¤¿¤á¤Ë»È¤¤¤Ş¤¹
+	//â†“ buildãƒ¡ã‚½ãƒƒãƒ‰ã‚’å‘¼ã‚“ã å›æ•°ã‚’ã‚«ã‚¦ãƒ³ãƒˆã™ã‚‹ã€‚
+	//â†“ ã“ã‚Œã¯ã€ã“ã®ãƒ—ãƒ©ã‚°ã‚¤ãƒ³ãŒç”Ÿæˆã™ã‚‹JavaScriptå†…ã§ãƒ¦ãƒ‹ãƒ¼ã‚¯ãªå¤‰æ•°åï¼ˆè¢«ã‚‰ãªã„å¤‰æ•°åï¼‰ã‚’ç”Ÿæˆã™ã‚‹ãŸã‚ã«ä½¿ã„ã¾ã™
 	var $callcount;
 
 	function RegionPluginHTMLBuilder() {
+		$this->__construct();
+	}
+	function __construct() {
 		$this->callcount = 0;
 		$this->setDefaultSettings();
 	}
@@ -52,17 +58,17 @@ class RegionPluginHTMLBuilder
 	}
 	function setClosed(){ $this->isopened = false; }
 	function setOpened(){ $this->isopened = true; }
-	// convert_html()¤ò»È¤Ã¤Æ¡¢³µÍ×¤ÎÉôÊ¬¤Ë¥Ö¥é¥ó¥±¥Ã¥È¥Í¡¼¥à¤ò»È¤¨¤ë¤è¤¦¤Ë²şÎÉ¡£
+	// convert_html()ã‚’ä½¿ã£ã¦ã€æ¦‚è¦ã®éƒ¨åˆ†ã«ãƒ–ãƒ©ãƒ³ã‚±ãƒƒãƒˆãƒãƒ¼ãƒ ã‚’ä½¿ãˆã‚‹ã‚ˆã†ã«æ”¹è‰¯ã€‚
 	function setDescription($description){
 		$this->description = convert_html($description);
-		// convert_html¤ò»È¤¦¤È <p>¥¿¥°¤Ç°Ï¤Ş¤ì¤Æ¤·¤Ş¤¦¡£Mozzila¤À¤ÈÉ½¼¨¤¬¤º¤ì¤ë¤Î¤Ç<p>¥¿¥°¤ò¾Ã¤¹¡£
+		// convert_htmlã‚’ä½¿ã†ã¨ <p>ã‚¿ã‚°ã§å›²ã¾ã‚Œã¦ã—ã¾ã†ã€‚Mozzilaã ã¨è¡¨ç¤ºãŒãšã‚Œã‚‹ã®ã§<p>ã‚¿ã‚°ã‚’æ¶ˆã™ã€‚
 		$this->description = preg_replace( "/^<p>/i", "", $this->description);
 		$this->description = preg_replace( "/<\/p>$/i", "", $this->description);
 	}
 	function build(){
 		$this->callcount++;
 		$html = array();
-		// °Ê¹ß¡¢£È£Ô£Í£ÌºîÀ®½èÍı
+		// ä»¥é™ã€ï¼¨ï¼´ï¼­ï¼¬ä½œæˆå‡¦ç†
 		array_push( $html, $this->buildButtonHtml() );
 		array_push( $html, $this->buildBracketHtml() );
 		array_push( $html, $this->buildSummaryHtml() );
@@ -70,14 +76,14 @@ class RegionPluginHTMLBuilder
 		return join($html);
 	}
 
-	// ¢£ ¥Ü¥¿¥ó¤ÎÉôÊ¬¡£
+	// â–  ãƒœã‚¿ãƒ³ã®éƒ¨åˆ†ã€‚
 	function buildButtonHtml(){
 		$button = ($this->isopened) ? "-" : "+";
-		// JavaScript¤Çsummaryrgn1¡¢contentrgn1¤Ê¤É¤È¤¤¤Ã¤¿´¶¤¸¤Î¥æ¥Ë¡¼¥¯¤ÊÊÑ¿ôÌ¾¤ò»ÈÍÑ¡£¤«¤Ö¤Ã¤¿¤é°ì´¬¤Î½ª¤ï¤ê¤Ç¤¹¡£Ëü»öµÙ¤¹¡£id»ØÄê¤»¤º¥ª¥Ö¥¸¥§¥¯¥È¼è¤ì¤ë¤è¤¦¤Ê¡¢¤Ê¤ó¤«¤è¤¤ÊıË¡¤¬¤¢¤ì¤Ğ¤¤¤¤¤ó¤À¤±¤É¡£
+		// JavaScriptã§summaryrgn1ã€contentrgn1ãªã©ã¨ã„ã£ãŸæ„Ÿã˜ã®ãƒ¦ãƒ‹ãƒ¼ã‚¯ãªå¤‰æ•°åã‚’ä½¿ç”¨ã€‚ã‹ã¶ã£ãŸã‚‰ä¸€å·»ã®çµ‚ã‚ã‚Šã§ã™ã€‚ä¸‡äº‹ä¼‘ã™ã€‚idæŒ‡å®šã›ãšã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆå–ã‚Œã‚‹ã‚ˆã†ãªã€ãªã‚“ã‹ã‚ˆã„æ–¹æ³•ãŒã‚ã‚Œã°ã„ã„ã‚“ã ã‘ã©ã€‚
 		return <<<EOD
 <table cellpadding=1 cellspacing=2><tr>
 <td valign=top>
-	<span id=rgn_button$this->callcount style="cursor:pointer;font:normal 10px £Í£Ó £Ğ¥´¥·¥Ã¥¯;border:gray 1px solid;"
+	<span id=rgn_button$this->callcount style="cursor:pointer;font:normal 10px ï¼­ï¼³ ï¼°ã‚´ã‚·ãƒƒã‚¯;border:gray 1px solid;"
 	onclick="
 	if(document.getElementById('rgn_summary$this->callcount').style.display!='none'){
 		document.getElementById('rgn_summary$this->callcount').style.display='none';
@@ -95,7 +101,7 @@ class RegionPluginHTMLBuilder
 EOD;
 	}
 
-	// ¢£ Å¸³«¤·¤¿¤È¤­¤Îº¸Â¦¤Î°Ï¤¤¤ÎÉôÊ¬¡£¤³¤ó¤Ê¤ä¤Ä ¢Í [ ¡£ ¥Ü¡¼¥À¡¼¤Ç¾å²¼º¸¤òsolid¡£±¦Â¦¤À¤±none¤Ë¤·¤Æ [ ¤Ë¸«¤»¤«¤±¤ë¡£
+	// â–  å±•é–‹ã—ãŸã¨ãã®å·¦å´ã®å›²ã„ã®éƒ¨åˆ†ã€‚ã“ã‚“ãªã‚„ã¤ â‡’ [ ã€‚ ãƒœãƒ¼ãƒ€ãƒ¼ã§ä¸Šä¸‹å·¦ã‚’solidã€‚å³å´ã ã‘noneã«ã—ã¦ [ ã«è¦‹ã›ã‹ã‘ã‚‹ã€‚
 	function buildBracketHtml(){
 		$bracketstyle = ($this->isopened) ? "border-style: solid none solid solid;" : "border-style:none;";
 		return <<<EOD
@@ -103,7 +109,7 @@ EOD;
 EOD;
 	}
 
-	// ¢£ ½Ì¾®É½¼¨¤·¤Æ¤¤¤ë¤È¤­¤ÎÉ½¼¨ÆâÍÆ¡£
+	// â–  ç¸®å°è¡¨ç¤ºã—ã¦ã„ã‚‹ã¨ãã®è¡¨ç¤ºå†…å®¹ã€‚
 	function buildSummaryHtml(){
 		$summarystyle = ($this->isopened) ? "display:none;" : "display:block;";
 		return <<<EOD
@@ -111,7 +117,7 @@ EOD;
 EOD;
 	}
 
-	// ¢£ Å¸³«É½¼¨¤·¤Æ¤¤¤ë¤È¤­¤ÎÉ½¼¨ÆâÍÆ¥Ø¥Ã¥ÀÉôÊ¬¡£¤³¤³¤Î<td>¤ÎÊÄ¤¸¥¿¥°¤Ï endregion Â¦¤Ë¤¢¤ë¡£
+	// â–  å±•é–‹è¡¨ç¤ºã—ã¦ã„ã‚‹ã¨ãã®è¡¨ç¤ºå†…å®¹ãƒ˜ãƒƒãƒ€éƒ¨åˆ†ã€‚ã“ã“ã®<td>ã®é–‰ã˜ã‚¿ã‚°ã¯ endregion å´ã«ã‚ã‚‹ã€‚
 	function buildContentHtml(){
 		$contentstyle = ($this->isopened) ? "display:block;" : "display:none;";
 		return <<<EOD
